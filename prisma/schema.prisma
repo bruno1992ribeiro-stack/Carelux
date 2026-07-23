@@ -1,0 +1,167 @@
+// This is the Prisma schema for CareLux, a multi-tenant nursing home management platform.
+// It is designed for PostgreSQL and follows Prisma best practices for tenant-aware data modeling.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  
+  
+}
+enum SubscriptionPlan {
+  MONTHLY
+  QUARTERLY
+  SEMI_ANNUAL
+  ANNUAL
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  RESTRICTED
+  SUSPENDED
+}
+
+enum ResidentStatus {
+ 
+  ACTIVE
+  INACTIVE
+}
+enum FacilityStatus {
+  ACTIVE
+  INACTIVE
+}
+model Role {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  description String?
+
+  users User[]
+}
+model Client {
+  id                 String             @id @default(uuid()) @db.Uuid
+  name               String
+  nif                String?            @unique
+  email              String?
+  phone              String?
+
+  // Gestão de Subscrição e Faturação
+  subscriptionPlan   SubscriptionPlan   @default(MONTHLY)
+  subscriptionStatus SubscriptionStatus @default(ACTIVE)
+  currentPeriodStart DateTime           @default(now())
+  currentPeriodEnd   DateTime
+  gracePeriodEndsAt  DateTime?
+
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  facilities Facility[]
+}
+model Facility {
+  id          String   @id @default(uuid()) @db.Uuid
+
+  clientId    String @db.Uuid
+
+  name        String
+
+  address     String?
+
+  phone       String?
+
+  email       String?
+
+  status FacilityStatus @default(ACTIVE)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  client Client @relation(
+  fields: [clientId],
+  references: [id],
+  onDelete: Cascade
+)
+
+  users         User[]
+  residents     Resident[]
+  familyMembers FamilyMember[]
+}
+
+model User {
+  id              String   @id @default(uuid()) @db.Uuid
+  facilityId      String   @db.Uuid
+  email           String
+  name            String
+  roleId String @db.Uuid
+
+  role Role @relation(fields: [roleId], references: [id])
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  facility Facility @relation(
+  fields: [facilityId],
+  references: [id],
+  onDelete: Cascade
+)
+
+  @@unique([facilityId, email])
+  @@index([facilityId, roleId])
+}
+
+model Resident {
+  id              String    @id @default(uuid()) @db.Uuid
+  facilityId      String @db.Uuid
+  fullName        String
+  gender          String?
+  birthPlace      String?
+  nationality     String?
+  dateOfBirth     DateTime?
+
+  nif             String?
+  citizenCard     String?
+  snsNumber       String?
+  emergencyContactName   String?
+  emergencyContactPhone  String?
+
+  admissionDate   DateTime?
+  dischargeDate DateTime?
+  roomNumber      String?
+  status          ResidentStatus @default(ACTIVE)
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  facility Facility @relation(
+  fields: [facilityId],
+  references: [id],
+  onDelete: Cascade
+)
+  familyMembers FamilyMember[]
+
+  @@index([facilityId, status])
+}
+
+model FamilyMember {
+  id                String   @id @default(uuid()) @db.Uuid
+  facilityId String @db.Uuid
+  residentId        String   @db.Uuid
+  fullName          String
+  relationship      String
+  email             String?
+  phone             String?
+  isPrimaryContact  Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  facility Facility @relation(
+  fields: [facilityId],
+  references: [id],
+  onDelete: Cascade
+)
+  resident     Resident     @relation(fields: [residentId], references: [id], onDelete: Cascade)
+
+  @@index([facilityId, residentId])
+  @@index([residentId, isPrimaryContact])
+}
