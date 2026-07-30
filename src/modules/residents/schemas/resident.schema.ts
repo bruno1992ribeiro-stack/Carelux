@@ -25,25 +25,26 @@ const optionalGenderSchema = z
   )
   .default(null);
 
-export const residentSchema = z
-  .object({
-    facilityId: z.string().min(1, "Deve selecionar um lar."),
-    roomId: optionalIdSchema,
-    bedId: optionalIdSchema,
-    firstName: z
-      .string()
-      .trim()
-      .min(1, "O nome do utente é obrigatório."),
-    lastName: z
-      .string()
-      .trim()
-      .min(1, "O apelido do utente é obrigatório."),
-    birthDate: optionalDateSchema,
-    gender: optionalGenderSchema,
-    admissionDate: optionalDateSchema,
-    status: z.nativeEnum(ResidentStatus).default(ResidentStatus.ACTIVE),
-  })
-  .superRefine((data, context) => {
+const residentBaseSchema = z.object({
+  facilityId: z.string().min(1, "Deve selecionar um lar."),
+  roomId: optionalIdSchema,
+  bedId: optionalIdSchema,
+  firstName: z
+    .string()
+    .trim()
+    .min(1, "O nome do utente é obrigatório."),
+  lastName: z
+    .string()
+    .trim()
+    .min(1, "O apelido do utente é obrigatório."),
+  birthDate: optionalDateSchema,
+  gender: optionalGenderSchema,
+  admissionDate: optionalDateSchema,
+  status: z.nativeEnum(ResidentStatus).default(ResidentStatus.ACTIVE),
+});
+
+export const residentSchema = residentBaseSchema.superRefine(
+  (data, context) => {
     if (data.bedId && !data.roomId) {
       context.addIssue({
         code: "custom",
@@ -51,9 +52,10 @@ export const residentSchema = z
         path: ["roomId"],
       });
     }
-  });
+  }
+);
 
-export const updateResidentSchema = residentSchema.partial();
+export const updateResidentSchema = residentBaseSchema.partial();
 
 export type ResidentInput = z.infer<typeof residentSchema>;
 export type UpdateResidentInput = z.infer<typeof updateResidentSchema>;
