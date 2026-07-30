@@ -1,167 +1,383 @@
-// This is the Prisma schema for CareLux, a multi-tenant nursing home management platform.
-// It is designed for PostgreSQL and follows Prisma best practices for tenant-aware data modeling.
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  
-  
+  url      = env("DATABASE_URL")
 }
+
+//////////////////////////////////////////////////////////
+// ENUMS
+//////////////////////////////////////////////////////////
+
 enum SubscriptionPlan {
-  MONTHLY
-  QUARTERLY
-  SEMI_ANNUAL
-  ANNUAL
+  FREE
+  PRO
+  ENTERPRISE
 }
 
 enum SubscriptionStatus {
   ACTIVE
-  PAST_DUE
-  RESTRICTED
   SUSPENDED
+  CANCELLED
 }
 
-enum ResidentStatus {
- 
-  ACTIVE
-  INACTIVE
-}
 enum FacilityStatus {
   ACTIVE
   INACTIVE
 }
-model Role {
-  id          String   @id @default(uuid()) @db.Uuid
-  name        String   @unique
-  description String?
 
-  users User[]
+enum ResidentStatus {
+  ACTIVE
+  HOSPITALIZED
+  DISCHARGED
+  DECEASED
 }
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum StaffPosition {
+  DIRECTOR
+  NURSE
+  PHYSIOTHERAPIST
+  OCCUPATIONAL_THERAPIST
+  SPEECH_THERAPIST
+  AUDIOLOGIST
+  PSYCHOLOGIST
+  SOCIAL_WORKER
+  CAREGIVER
+  COOK
+  CLEANER
+  ADMINISTRATIVE
+  OTHER
+}
+
+//////////////////////////////////////////////////////////
+// CLIENT
+//////////////////////////////////////////////////////////
+
 model Client {
-  id                 String             @id @default(uuid()) @db.Uuid
-  name               String
-  nif                String?            @unique
-  email              String?
-  phone              String?
+  id String @id @default(cuid())
 
-  // Gestão de Subscrição e Faturação
-  subscriptionPlan   SubscriptionPlan   @default(MONTHLY)
+  name  String
+  email String  @unique
+  phone String?
+  nif   String?
+
+  subscriptionPlan   SubscriptionPlan   @default(FREE)
   subscriptionStatus SubscriptionStatus @default(ACTIVE)
-  currentPeriodStart DateTime           @default(now())
-  currentPeriodEnd   DateTime
-  gracePeriodEndsAt  DateTime?
 
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   facilities Facility[]
+  users      User[]
+  roles      Role[]
 }
+
+//////////////////////////////////////////////////////////
+// FACILITY
+//////////////////////////////////////////////////////////
+
 model Facility {
-  id          String   @id @default(uuid()) @db.Uuid
+  id String @id @default(cuid())
 
-  clientId    String @db.Uuid
+  clientId String
 
-  name        String
+  name String
 
-  address     String?
+  address    String?
+  city       String?
+  postalCode String?
 
-  phone       String?
-
-  email       String?
+  phone String?
+  email String?
 
   status FacilityStatus @default(ACTIVE)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  client Client @relation(
-  fields: [clientId],
-  references: [id],
-  onDelete: Cascade
-)
+  client Client @relation(fields: [clientId], references: [id])
 
-  users         User[]
-  residents     Resident[]
-  familyMembers FamilyMember[]
+  users User[]
+  staff Staff[]
+
+  rooms     Room[]
+  residents Resident[]
 }
 
-model User {
-  id              String   @id @default(uuid()) @db.Uuid
-  facilityId      String   @db.Uuid
-  email           String
-  name            String
-  roleId String @db.Uuid
+//////////////////////////////////////////////////////////
+// ROOM
+//////////////////////////////////////////////////////////
 
-  role Role @relation(fields: [roleId], references: [id])
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+model Room {
+  id String @id @default(cuid())
 
-  facility Facility @relation(
-  fields: [facilityId],
-  references: [id],
-  onDelete: Cascade
-)
+  facilityId String
 
-  @@unique([facilityId, email])
-  @@index([facilityId, roleId])
+  number String
+
+  floor String?
+
+  capacity Int @default(1)
+
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  facility Facility @relation(fields: [facilityId], references: [id])
+
+  beds Bed[]
+
+  residents Resident[]
+
+  @@unique([facilityId, number])
 }
+
+//////////////////////////////////////////////////////////
+// BED
+//////////////////////////////////////////////////////////
+
+model Bed {
+  id String @id @default(cuid())
+
+  roomId String
+
+  identifier String
+
+  active Boolean @default(true)
+
+  occupied Boolean @default(false)
+
+  room Room @relation(fields: [roomId], references: [id])
+
+  residents Resident[]
+}
+
+//////////////////////////////////////////////////////////
+// RESIDENT
+//////////////////////////////////////////////////////////
 
 model Resident {
-  id              String    @id @default(uuid()) @db.Uuid
-  facilityId      String @db.Uuid
-  fullName        String
-  gender          String?
-  birthPlace      String?
-  nationality     String?
-  dateOfBirth     DateTime?
+  id String @id @default(cuid())
 
-  nif             String?
-  citizenCard     String?
-  snsNumber       String?
-  emergencyContactName   String?
-  emergencyContactPhone  String?
+  facilityId String
 
-  admissionDate   DateTime?
-  dischargeDate DateTime?
-  roomNumber      String?
-  status          ResidentStatus @default(ACTIVE)
-  notes           String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  roomId String?
 
-  facility Facility @relation(
-  fields: [facilityId],
-  references: [id],
-  onDelete: Cascade
-)
-  familyMembers FamilyMember[]
+  bedId String?
 
-  @@index([facilityId, status])
+  firstName String
+
+  lastName String
+
+  birthDate DateTime?
+
+  gender Gender?
+
+  admissionDate DateTime?
+
+  status ResidentStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  facility Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+
+  room Room? @relation(fields: [roomId], references: [id])
+
+  bed Bed? @relation(fields: [bedId], references: [id])
+
+  contacts ResidentContact[]
+
+  @@index([facilityId])
+  @@index([roomId])
+  @@index([bedId])
 }
 
-model FamilyMember {
-  id                String   @id @default(uuid()) @db.Uuid
-  facilityId String @db.Uuid
-  residentId        String   @db.Uuid
-  fullName          String
-  relationship      String
-  email             String?
-  phone             String?
-  isPrimaryContact  Boolean  @default(false)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+//////////////////////////////////////////////////////////
+// RESIDENT CONTACT
+//////////////////////////////////////////////////////////
 
-  facility Facility @relation(
-  fields: [facilityId],
-  references: [id],
-  onDelete: Cascade
-)
-  resident     Resident     @relation(fields: [residentId], references: [id], onDelete: Cascade)
+model ResidentContact {
+  id String @id @default(cuid())
 
-  @@index([facilityId, residentId])
-  @@index([residentId, isPrimaryContact])
+  residentId String
+
+  fullName String
+
+  relationship String
+
+  phone String?
+
+  email String?
+
+  isPrimary Boolean @default(false)
+
+  legalRepresentative Boolean @default(false)
+
+  notes String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  resident Resident @relation(fields: [residentId], references: [id], onDelete: Cascade)
+
+  @@index([residentId])
+}
+
+//////////////////////////////////////////////////////////
+// USER
+//////////////////////////////////////////////////////////
+
+model User {
+  id String @id @default(cuid())
+
+  clientId String
+
+  facilityId String?
+
+  roleId String?
+
+  fullName String
+
+  email String @unique
+
+  password String
+
+  active Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  client Client @relation(fields: [clientId], references: [id])
+
+  facility Facility? @relation(fields: [facilityId], references: [id])
+
+  role Role? @relation(fields: [roleId], references: [id])
+
+  staff Staff?
+
+  @@index([clientId])
+  @@index([facilityId])
+  @@index([roleId])
+}
+
+//////////////////////////////////////////////////////////
+// STAFF
+//////////////////////////////////////////////////////////
+
+model Staff {
+  id String @id @default(cuid())
+
+  userId String @unique
+
+  facilityId String
+
+  employeeNumber String?
+
+  firstName String
+
+  lastName String
+
+  birthDate DateTime?
+
+  gender Gender?
+
+  phone String?
+
+  nif String?
+
+  niss String?
+
+  position StaffPosition
+
+  admissionDate DateTime?
+
+  terminationDate DateTime?
+
+  active Boolean @default(true)
+
+  notes String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  facility Facility @relation(fields: [facilityId], references: [id])
+
+  @@index([facilityId])
+}
+
+//////////////////////////////////////////////////////////
+// ROLES
+//////////////////////////////////////////////////////////
+
+model Role {
+  id String @id @default(cuid())
+
+  clientId String?
+
+  code String @unique
+
+  name String
+
+  description String?
+
+  isSystem Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  client Client? @relation(fields: [clientId], references: [id])
+
+  users User[]
+
+  permissions RolePermission[]
+}
+
+//////////////////////////////////////////////////////////
+// PERMISSIONS
+//////////////////////////////////////////////////////////
+
+model Permission {
+  id String @id @default(cuid())
+
+  code String @unique
+
+  description String
+
+  createdAt DateTime @default(now())
+
+  roles RolePermission[]
+}
+
+//////////////////////////////////////////////////////////
+// ROLE PERMISSION
+//////////////////////////////////////////////////////////
+
+model RolePermission {
+  id String @id @default(cuid())
+
+  roleId String
+
+  permissionId String
+
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
 }
