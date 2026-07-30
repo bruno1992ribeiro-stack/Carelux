@@ -1,13 +1,17 @@
-import { getCurrentClient } from "@/lib/session";
+import { requireClient, requireFacility } from "./auth";
 
-export async function getClientFilter() {
-  const client = await getCurrentClient();
-
-  if (!client) {
-    throw new Error("Cliente não encontrado.");
-  }
+export async function clientFilter() {
+  const client = await requireClient();
 
   return {
     clientId: client.id,
+  };
+}
+
+export async function facilityFilter() {
+  const facility = await requireFacility();
+
+  return {
+    facilityId: facility.id,
   };
 }
