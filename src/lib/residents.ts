@@ -1,16 +1,34 @@
-import { getCurrentFacility } from "@/lib/facility";
+import type { Prisma } from "@prisma/client";
 
-export async function getResidentFilter() {
-  const facility = await getCurrentFacility();
+import { getCurrentUser } from "@/lib/session";
 
-  //
-  // Administrador vê tudo
-  //
-  if (!facility) {
-    return {};
+export async function getResidentFilter(): Promise<Prisma.ResidentWhereInput> {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    throw new Error("Utilizador não encontrado.");
   }
 
+  /*
+   * Um utilizador associado a um lar vê apenas
+   * os utentes desse lar.
+   */
+  if (user.facilityId) {
+    return {
+      facilityId: user.facilityId,
+      facility: {
+        clientId: user.clientId,
+      },
+    };
+  }
+
+  /*
+   * Um administrador sem lar associado vê todos
+   * os utentes do seu cliente, mas nunca de outros clientes.
+   */
   return {
-    facilityId: facility.id,
+    facility: {
+      clientId: user.clientId,
+    },
   };
 }

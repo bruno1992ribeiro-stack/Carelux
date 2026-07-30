@@ -1,11 +1,10 @@
 import type { ReactNode } from "react";
 
-import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
+import { auth } from "@/lib/auth";
 import { Sidebar } from "@/components/Sidebar";
 import { PageContainer } from "@/components/PageContainer";
-
 import { getRoleById } from "@/services/role-service";
 
 interface DashboardLayoutProps {
@@ -24,16 +23,14 @@ export default async function DashboardLayout({
   const role = getRoleById("administrator");
 
   return (
-    <main className="min-h-screen bg-slate-100 p-6">
-      <PageContainer>
-        <div className="grid grid-cols-[280px_1fr] gap-6">
-          <Sidebar currentRole={role.label} />
+    <div className="min-h-screen bg-[linear-gradient(135deg,#f8fafc_0%,#eff8f5_48%,#eff6ff_100%)]">
+      <Sidebar currentRole={role.label} />
 
-          <div>
-            {children}
-          </div>
-        </div>
-      </PageContainer>
-    </main>
+      <main className="min-w-0 lg:pl-[19.5rem]">
+        <PageContainer className="py-5 sm:py-6 lg:py-8">
+          {children}
+        </PageContainer>
+      </main>
+    </div>
   );
 }
