@@ -1,136 +1,89 @@
-import { prisma } from "@/lib/prisma";
-import { getResidentFilter } from "@/lib/residents";
+import Link from "next/link";
+
+import { getCurrentUser } from "@/lib/session";
+import { DeleteResidentButton } from "@/modules/residents/components/delete-resident-button";
+import { residentService } from "@/modules/residents/services/resident.service";
 
 function getStatusLabel(status: string) {
-  switch (status) {
-    case "ACTIVE":
-      return "Ativo";
+  const labels: Record<string, string> = {
+    ACTIVE: "Ativo",
+    HOSPITALIZED: "Hospitalizado",
+    DISCHARGED: "Alta",
+    DECEASED: "Falecido",
+  };
 
-    case "HOSPITALIZED":
-      return "Hospitalizado";
-
-    case "DISCHARGED":
-      return "Alta";
-
-    case "DECEASED":
-      return "Falecido";
-
-    default:
-      return status;
-  }
+  return labels[status] ?? status;
 }
 
 function getStatusClasses(status: string) {
-  switch (status) {
-    case "ACTIVE":
-      return "bg-emerald-100 text-emerald-700";
+  const classes: Record<string, string> = {
+    ACTIVE: "bg-emerald-100 text-emerald-700",
+    HOSPITALIZED: "bg-amber-100 text-amber-700",
+    DISCHARGED: "bg-blue-100 text-blue-700",
+    DECEASED: "bg-slate-200 text-slate-600",
+  };
 
-    case "HOSPITALIZED":
-      return "bg-amber-100 text-amber-700";
-
-    case "DISCHARGED":
-      return "bg-blue-100 text-blue-700";
-
-    case "DECEASED":
-      return "bg-slate-200 text-slate-600";
-
-    default:
-      return "bg-slate-100 text-slate-600";
-  }
+  return classes[status] ?? "bg-slate-100 text-slate-600";
 }
 
 const dateFormatter = new Intl.DateTimeFormat("pt-PT");
 
 export default async function ResidentsPage() {
-  const filter = await getResidentFilter();
+  const user = await getCurrentUser();
 
-  const residents = await prisma.resident.findMany({
-    where: filter,
+  if (!user) {
+    return (
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
+        <h1 className="text-xl font-bold text-red-700">Utilizador não encontrado</h1>
+        <p className="mt-2 text-sm text-red-600">
+          Não foi possível identificar o utilizador da sessão.
+        </p>
+      </div>
+    );
+  }
 
-    include: {
-      facility: true,
-      room: true,
-      bed: true,
-    },
-
-    orderBy: [
-      {
-        lastName: "asc",
-      },
-      {
-        firstName: "asc",
-      },
-    ],
+  const residents = await residentService.findAll({
+    clientId: user.clientId,
+    facilityId: user.facilityId,
   });
-
-  const activeResidents = residents.filter(
-    (resident) => resident.status === "ACTIVE"
-  ).length;
-
+  const activeResidents = residents.filter((resident) => resident.status === "ACTIVE").length;
   const hospitalizedResidents = residents.filter(
     (resident) => resident.status === "HOSPITALIZED"
   ).length;
-
-  const residentsWithoutBed = residents.filter(
-    (resident) => !resident.bedId
-  ).length;
+  const residentsWithoutBed = residents.filter((resident) => !resident.bedId).length;
 
   return (
     <div className="min-w-0 space-y-6">
-      <header>
-        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-emerald-600">
-          Gestão residencial
-        </p>
-
-        <h1 className="mt-1 text-3xl font-bold text-slate-900">
-          Utentes
-        </h1>
-
-        <p className="mt-1 text-sm text-slate-500">
-          Consulte os utentes registados nos seus lares.
-        </p>
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-emerald-600">
+            Gestão residencial
+          </p>
+          <h1 className="mt-1 text-3xl font-bold text-slate-900">Utentes</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Consulte e gira os utentes registados nos seus lares.
+          </p>
+        </div>
+        <Link
+          href="/dashboard/residents/new"
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 sm:w-auto"
+        >
+          Novo utente
+        </Link>
       </header>
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Total
-          </p>
-
-          <p className="mt-2 text-3xl font-bold text-slate-900">
-            {residents.length}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
-            Ativos
-          </p>
-
-          <p className="mt-2 text-3xl font-bold text-emerald-700">
-            {activeResidents}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">
-            Hospitalizados
-          </p>
-
-          <p className="mt-2 text-3xl font-bold text-amber-700">
-            {hospitalizedResidents}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">
-            Sem cama
-          </p>
-
-          <p className="mt-2 text-3xl font-bold text-blue-700">
-            {residentsWithoutBed}
-          </p>
-        </div>
+        {[
+          ["Total", residents.length, "border-slate-200 bg-white text-slate-900"],
+          ["Ativos", activeResidents, "border-emerald-200 bg-emerald-50 text-emerald-700"],
+          ["Hospitalizados", hospitalizedResidents, "border-amber-200 bg-amber-50 text-amber-700"],
+          ["Sem cama", residentsWithoutBed, "border-blue-200 bg-blue-50 text-blue-700"],
+        ].map(([label, value, classes]) => (
+          <div key={String(label)} className={`rounded-2xl border p-4 shadow-sm ${classes}`}>
+            <p className="text-xs font-semibold uppercase tracking-wide opacity-80">{label}</p>
+            <p className="mt-2 text-3xl font-bold">{value}</p>
+          </div>
+        ))}
       </section>
 
       {residents.length === 0 ? (
@@ -138,19 +91,22 @@ export default async function ResidentsPage() {
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 font-bold text-emerald-700">
             UT
           </div>
-
           <h2 className="mt-4 text-lg font-semibold text-slate-900">
             Ainda não existem utentes
           </h2>
-
           <p className="mt-2 text-sm text-slate-500">
-            O próximo passo será criar o formulário de admissão de utentes.
+            Registe o primeiro utente e associe-o a um lar.
           </p>
+          <Link
+            href="/dashboard/residents/new"
+            className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
+          >
+            Criar primeiro utente
+          </Link>
         </section>
       ) : (
         <>
-          {/* Telemóvel */}
-          <section className="grid gap-4 md:hidden">
+          <section className="grid gap-4 md:grid-cols-2 lg:hidden">
             {residents.map((resident) => (
               <article
                 key={resident.id}
@@ -161,48 +117,30 @@ export default async function ResidentsPage() {
                     <p className="truncate text-xs font-semibold uppercase tracking-wide text-emerald-600">
                       {resident.facility.name}
                     </p>
-
                     <h2 className="mt-1 text-xl font-bold text-slate-900">
                       {resident.firstName} {resident.lastName}
                     </h2>
                   </div>
-
-                  <span
-                    className={[
-                      "shrink-0 rounded-full px-3 py-1 text-xs font-semibold",
-                      getStatusClasses(resident.status),
-                    ].join(" ")}
-                  >
+                  <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${getStatusClasses(resident.status)}`}>
                     {getStatusLabel(resident.status)}
                   </span>
                 </div>
 
                 <dl className="mt-5 space-y-3 border-t border-slate-100 pt-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <dt className="text-sm text-slate-500">
-                      Quarto
-                    </dt>
-
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-sm text-slate-500">Quarto</dt>
                     <dd className="text-right text-sm font-semibold text-slate-800">
                       {resident.room?.number ?? "Não atribuído"}
                     </dd>
                   </div>
-
-                  <div className="flex items-center justify-between gap-4">
-                    <dt className="text-sm text-slate-500">
-                      Cama
-                    </dt>
-
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-sm text-slate-500">Cama</dt>
                     <dd className="text-right text-sm font-semibold text-slate-800">
                       {resident.bed?.identifier ?? "Não atribuída"}
                     </dd>
                   </div>
-
-                  <div className="flex items-center justify-between gap-4">
-                    <dt className="text-sm text-slate-500">
-                      Admissão
-                    </dt>
-
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-sm text-slate-500">Admissão</dt>
                     <dd className="text-right text-sm font-semibold text-slate-800">
                       {resident.admissionDate
                         ? dateFormatter.format(resident.admissionDate)
@@ -210,85 +148,82 @@ export default async function ResidentsPage() {
                     </dd>
                   </div>
                 </dl>
+
+                <div className="mt-5 grid grid-cols-2 gap-2">
+                  <Link
+                    href={`/dashboard/residents/${resident.id}`}
+                    className="inline-flex min-h-10 items-center justify-center rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                  >
+                    Ver
+                  </Link>
+                  <Link
+                    href={`/dashboard/residents/${resident.id}/edit`}
+                    className="inline-flex min-h-10 items-center justify-center rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                  >
+                    Editar
+                  </Link>
+                  <div className="col-span-2">
+                    <DeleteResidentButton residentId={resident.id} />
+                  </div>
+                </div>
               </article>
             ))}
           </section>
 
-          {/* Tablet e computador */}
-          <section className="hidden overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm md:block">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[850px]">
-                <thead className="border-b border-slate-200 bg-slate-50">
-                  <tr>
-                    <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Utente
+          <section className="hidden overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:block">
+            <table className="w-full table-fixed">
+              <thead className="border-b border-slate-200 bg-slate-50">
+                <tr>
+                  {[
+                    ["Utente", "w-[22%]"],
+                    ["Lar", "w-[17%]"],
+                    ["Quarto", "w-[10%]"],
+                    ["Cama", "w-[10%]"],
+                    ["Admissão", "w-[13%]"],
+                    ["Estado", "w-[13%]"],
+                    ["Ações", "w-[15%] text-right"],
+                  ].map(([label, width]) => (
+                    <th key={label} className={`px-4 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 ${width}`}>
+                      {label}
                     </th>
-
-                    <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Lar
-                    </th>
-
-                    <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Quarto
-                    </th>
-
-                    <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Cama
-                    </th>
-
-                    <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Admissão
-                    </th>
-
-                    <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Estado
-                    </th>
-                  </tr>
-                </thead>
-
-                <tbody className="divide-y divide-slate-100">
-                  {residents.map((resident) => (
-                    <tr
-                      key={resident.id}
-                      className="transition hover:bg-slate-50"
-                    >
-                      <td className="px-5 py-4 text-sm font-semibold text-slate-900">
-                        {resident.firstName} {resident.lastName}
-                      </td>
-
-                      <td className="px-5 py-4 text-sm text-slate-600">
-                        {resident.facility.name}
-                      </td>
-
-                      <td className="px-5 py-4 text-sm text-slate-600">
-                        {resident.room?.number ?? "-"}
-                      </td>
-
-                      <td className="px-5 py-4 text-sm text-slate-600">
-                        {resident.bed?.identifier ?? "-"}
-                      </td>
-
-                      <td className="px-5 py-4 text-sm text-slate-600">
-                        {resident.admissionDate
-                          ? dateFormatter.format(resident.admissionDate)
-                          : "-"}
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <span
-                          className={[
-                            "rounded-full px-3 py-1 text-xs font-semibold",
-                            getStatusClasses(resident.status),
-                          ].join(" ")}
-                        >
-                          {getStatusLabel(resident.status)}
-                        </span>
-                      </td>
-                    </tr>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {residents.map((resident) => (
+                  <tr key={resident.id} className="transition hover:bg-slate-50">
+                    <td className="truncate px-4 py-4 text-sm font-semibold text-slate-900">
+                      {resident.firstName} {resident.lastName}
+                    </td>
+                    <td className="truncate px-4 py-4 text-sm text-slate-600">{resident.facility.name}</td>
+                    <td className="px-4 py-4 text-sm text-slate-600">{resident.room?.number ?? "-"}</td>
+                    <td className="px-4 py-4 text-sm text-slate-600">{resident.bed?.identifier ?? "-"}</td>
+                    <td className="px-4 py-4 text-sm text-slate-600">
+                      {resident.admissionDate ? dateFormatter.format(resident.admissionDate) : "-"}
+                    </td>
+                    <td className="px-4 py-4">
+                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusClasses(resident.status)}`}>
+                        {getStatusLabel(resident.status)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="flex justify-end gap-1.5">
+                        <Link href={`/dashboard/residents/${resident.id}`} className="rounded-lg border border-slate-300 px-2.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100">
+                          Ver
+                        </Link>
+                        <Link href={`/dashboard/residents/${resident.id}/edit`} className="rounded-lg border border-slate-300 px-2.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100">
+                          Editar
+                        </Link>
+                        <DeleteResidentButton
+                          residentId={resident.id}
+                          className="min-h-9 rounded-lg border border-red-200 px-2.5 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </section>
         </>
       )}
