@@ -1,3 +1,4 @@
+import { Role } from "@/modules/authorization/roles";
 import type { AuthRoleConfig } from "@/types/auth";
 
 export const roleCatalog: Record<string, AuthRoleConfig> = {
@@ -6,7 +7,7 @@ export const roleCatalog: Record<string, AuthRoleConfig> = {
     label: "Administrador",
     description: "Gestão completa da plataforma CareLux.",
     accent: "emerald",
-    badge: "ADMIN",
+    badge: Role.ADMIN,
   },
 
   employee: {
@@ -22,7 +23,7 @@ export const roleCatalog: Record<string, AuthRoleConfig> = {
     label: "Familiar",
     description: "Consulta de informação do utente.",
     accent: "amber",
-    badge: "FAMILY",
+    badge: Role.FAMILY,
   },
 };
 

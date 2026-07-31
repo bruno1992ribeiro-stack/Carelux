@@ -1,29 +1,27 @@
-import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcrypt";
-
-const prisma = new PrismaClient();
+import { seedPermissions } from "./seeds/permissions.seed";
+import { seedRolePermissions } from "./seeds/rolePermissions.seed";
+import { seedRoles } from "./seeds/roles.seed";
+import { prisma } from "../src/lib/prisma";
 
 async function main() {
-  const password = await bcrypt.hash("admin123", 10);
-
-  await prisma.user.upsert({
-    where: {
-      email: "admin@carelux.pt",
+  await prisma.$transaction(
+    async (tx) => {
+      await seedRoles(tx);
+      await seedPermissions(tx);
+      await seedRolePermissions(tx);
     },
-    update: {},
-
-    create: {
-      fullName: "Administrador",
-      email: "admin@carelux.pt",
-      password,
+    {
+      maxWait: 10_000,
+      timeout: 60_000,
     },
-  });
-
-  console.log("✅ Administrador criado!");
+  );
 }
 
 main()
-  .catch(console.error)
+  .catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  })
   .finally(async () => {
     await prisma.$disconnect();
   });

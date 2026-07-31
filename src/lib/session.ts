@@ -19,7 +19,19 @@ export async function getCurrentUser() {
     include: {
       client: true,
       facility: true,
-      role: true,
+      role: {
+        include: {
+          permissions: {
+            select: {
+              permission: {
+                select: {
+                  code: true,
+                },
+              },
+            },
+          },
+        },
+      },
     },
   });
 }

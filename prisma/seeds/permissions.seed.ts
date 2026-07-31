@@ -1,60 +1,51 @@
-import { prisma } from "../../src/lib/prisma";
+import type { Prisma } from "@prisma/client";
 
-const permissions = [
-  // Residentes
-  "VIEW_RESIDENT",
-  "CREATE_RESIDENT",
-  "EDIT_RESIDENT",
-  "ARCHIVE_RESIDENT",
+import { Permission } from "../../src/modules/authorization/permissions";
 
-  // Processo Clínico
-  "VIEW_CLINICAL_RECORD",
-  "EDIT_CLINICAL_RECORD",
+const permissionDescriptions: Record<Permission, string> = {
+  [Permission.VIEW_RESIDENT]: "Consultar utentes.",
+  [Permission.CREATE_RESIDENT]: "Criar utentes.",
+  [Permission.EDIT_RESIDENT]: "Editar utentes.",
+  [Permission.ARCHIVE_RESIDENT]: "Arquivar utentes.",
+  [Permission.VIEW_CLINICAL_RECORD]: "Consultar informação clínica.",
+  [Permission.EDIT_PATHOLOGY]: "Criar, editar e desativar patologias.",
+  [Permission.VIEW_MEDICATION]: "Consultar medicação.",
+  [Permission.EDIT_MEDICATION]: "Criar, editar e desativar medicação.",
+  [Permission.VIEW_APPOINTMENT]: "Consultar consultas.",
+  [Permission.EDIT_APPOINTMENT]: "Criar, editar, concluir e cancelar consultas.",
+  [Permission.VIEW_DOCUMENT]: "Consultar documentos.",
+  [Permission.CREATE_DOCUMENT]: "Criar documentos.",
+  [Permission.DELETE_DOCUMENT]: "Eliminar documentos.",
+  [Permission.DOWNLOAD_DOCUMENT]: "Descarregar documentos.",
+  [Permission.PRINT_DOCUMENT]: "Imprimir documentos.",
+  [Permission.VIEW_EMPLOYEES]: "Consultar funcionários.",
+  [Permission.EDIT_EMPLOYEES]: "Editar funcionários.",
+  [Permission.VIEW_FINANCE]: "Consultar informação financeira e faturação.",
+  [Permission.EDIT_FINANCE]: "Editar informação financeira e faturação.",
+  [Permission.VIEW_INVENTORY]: "Consultar inventário.",
+  [Permission.EDIT_INVENTORY]: "Editar inventário.",
+  [Permission.CREATE_INVENTORY_REQUEST]: "Criar pedidos de inventário.",
+  [Permission.PROCESS_INVENTORY_REQUEST]: "Processar pedidos e entregas de inventário.",
+  [Permission.MANAGE_USERS]: "Gerir utilizadores.",
+  [Permission.VIEW_AUDIT]: "Consultar auditoria.",
+  [Permission.EXPORT_DATA]: "Exportar dados.",
+  [Permission.VIEW_FAMILY]: "Consultar informação destinada à família.",
+  [Permission.SEND_MESSAGES]: "Enviar mensagens.",
+};
 
-  // Medicação
-  "VIEW_MEDICATION",
-  "EDIT_MEDICATION",
+export async function seedPermissions(client: Prisma.TransactionClient) {
+  for (const permission of Object.values(Permission)) {
+    const description = permissionDescriptions[permission];
 
-  // Documentos
-  "VIEW_DOCUMENT",
-  "CREATE_DOCUMENT",
-  "DELETE_DOCUMENT",
-  "DOWNLOAD_DOCUMENT",
-  "PRINT_DOCUMENT",
-
-  // Funcionários
-  "VIEW_EMPLOYEES",
-  "EDIT_EMPLOYEES",
-
-  // Financeiro
-  "VIEW_FINANCE",
-  "EDIT_FINANCE",
-
-  // Utilizadores
-  "MANAGE_USERS",
-
-  // Auditoria
-  "VIEW_AUDIT",
-
-  // Exportação
-  "EXPORT_DATA",
-
-  // Família
-  "VIEW_FAMILY",
-  "SEND_MESSAGES",
-];
-
-export async function seedPermissions() {
-  for (const code of permissions) {
-    await prisma.permission.upsert({
-      where: { code },
-      update: {},
+    await client.permission.upsert({
+      where: { code: permission },
+      update: { description },
       create: {
-        code,
-        name: code,
+        code: permission,
+        description,
       },
     });
   }
 
-  console.log("✅ Permissions seeded");
+  console.log("Permissões sincronizadas.");
 }
