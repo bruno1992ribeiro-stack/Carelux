@@ -7,6 +7,8 @@ import { getCurrentUser } from "@/lib/session";
 import { ResidentForm } from "@/modules/residents/components/resident-form";
 import { residentService } from "@/modules/residents/services/resident.service";
 
+export const dynamic = "force-dynamic";
+
 function toDateInput(date: Date | null) {
   return date ? date.toISOString().slice(0, 10) : "";
 }
