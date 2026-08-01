@@ -13,11 +13,7 @@ const authConfig: NextAuthConfig = {
       },
 
       async authorize(credentials) {
-        console.log("=== AUTHORIZE ===");
-        console.log(credentials);
-
         if (!credentials?.email || !credentials?.password) {
-          console.log("Sem credenciais");
           return null;
         }
 
@@ -27,10 +23,7 @@ const authConfig: NextAuthConfig = {
           },
         });
 
-        console.log("USER:", user);
-
         if (!user) {
-          console.log("Utilizador não encontrado");
           return null;
         }
 
@@ -39,13 +32,9 @@ const authConfig: NextAuthConfig = {
           user.password
         );
 
-        console.log("PASSWORD OK:", validPassword);
-
         if (!validPassword) {
           return null;
         }
-
-        console.log("LOGIN OK");
 
         return {
           id: user.id,

@@ -7,6 +7,7 @@ const permissionDescriptions: Record<Permission, string> = {
   [Permission.CREATE_RESIDENT]: "Criar utentes.",
   [Permission.EDIT_RESIDENT]: "Editar utentes.",
   [Permission.ARCHIVE_RESIDENT]: "Arquivar utentes.",
+  [Permission.RESTORE_RESIDENT]: "Restaurar utentes arquivados",
   [Permission.VIEW_CLINICAL_RECORD]: "Consultar informação clínica.",
   [Permission.EDIT_PATHOLOGY]: "Criar, editar e desativar patologias.",
   [Permission.VIEW_MEDICATION]: "Consultar medicação.",
