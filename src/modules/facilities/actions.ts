@@ -10,5 +10,5 @@ export async function getFacilities() {
     throw new Error("Cliente não encontrado.");
   }
 
-  return facilityService.getAll(client.id);
+  return facilityService.findAll(client.id);
 }
