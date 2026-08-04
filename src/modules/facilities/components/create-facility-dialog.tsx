@@ -19,10 +19,8 @@ export function CreateFacilityDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          + Novo Lar
-        </Button>
+      <DialogTrigger render={<Button />}>
+        + Novo Lar
       </DialogTrigger>
 
       <DialogContent className="max-w-3xl">
