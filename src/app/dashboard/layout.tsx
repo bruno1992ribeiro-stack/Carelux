@@ -23,7 +23,7 @@ export default async function DashboardLayout({
   const role = getRoleById("administrator");
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(135deg,#f8fafc_0%,#eff8f5_48%,#eff6ff_100%)]">
+    <div className="min-h-dvh overflow-x-hidden bg-background">
       <Sidebar currentRole={role.label} />
 
       <main className="min-w-0 lg:pl-[19.5rem]">

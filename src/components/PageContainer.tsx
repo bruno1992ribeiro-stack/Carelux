@@ -12,7 +12,7 @@ export function PageContainer({
   return (
     <div
       className={[
-        "mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-6 overflow-x-hidden px-4 py-4 sm:px-6 lg:px-8",
+        "mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-6 overflow-x-hidden px-4 sm:px-6 lg:px-8",
         className,
       ].join(" ")}
     >
