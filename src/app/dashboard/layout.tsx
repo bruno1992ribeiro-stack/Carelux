@@ -26,7 +26,7 @@ export default async function DashboardLayout({
     <div className="min-h-dvh overflow-x-hidden bg-background">
       <Sidebar currentRole={role.label} />
 
-      <main className="min-w-0 lg:pl-[19.5rem]">
+      <main className="min-w-0 pb-[calc(5.8rem+env(safe-area-inset-bottom))] lg:pb-0 lg:pl-[19.5rem]">
         <PageContainer className="py-5 sm:py-6 lg:py-8">
           {children}
         </PageContainer>

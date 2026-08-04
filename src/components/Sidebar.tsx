@@ -1,283 +1,383 @@
 "use client";
 
+import type { LucideIcon } from "lucide-react";
+import type { RefObject } from "react";
+import {
+  BedDouble,
+  Building2,
+  ChevronRight,
+  ContactRound,
+  House,
+  MoreHorizontal,
+  Settings,
+  Users,
+  UserRoundCog,
+  UserRoundSearch,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
 
 interface SidebarProps {
   currentRole?: string;
 }
 
-const navigation = [
+type NavigationItem = {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+  mobilePrimary?: boolean;
+};
+
+const navigation: NavigationItem[] = [
   {
-    label: "Dashboard",
+    label: "Início",
     href: "/dashboard",
-    short: "DB",
+    icon: House,
+    mobilePrimary: true,
   },
   {
     label: "Lares",
     href: "/dashboard/facilities",
-    short: "LR",
+    icon: Building2,
+    mobilePrimary: true,
   },
   {
     label: "Utentes",
     href: "/dashboard/residents",
-    short: "UT",
+    icon: Users,
+    mobilePrimary: true,
   },
   {
     label: "Quartos",
     href: "/dashboard/rooms",
-    short: "QT",
+    icon: BedDouble,
+    mobilePrimary: true,
   },
   {
     label: "Camas",
     href: "/dashboard/beds",
-    short: "CM",
+    icon: BedDouble,
   },
   {
     label: "Familiares",
     href: "/dashboard/contacts",
-    short: "FM",
+    icon: ContactRound,
   },
   {
     label: "Funcionários",
     href: "/dashboard/staff",
-    short: "FN",
+    icon: UserRoundCog,
   },
   {
     label: "Clientes",
     href: "/dashboard/clients",
-    short: "CL",
+    icon: UserRoundSearch,
   },
   {
     label: "Definições",
     href: "/dashboard/settings",
-    short: "DF",
+    icon: Settings,
   },
 ];
 
-type NavigationContentProps = {
-  currentRole: string;
+const primaryNavigation = navigation.filter((item) => item.mobilePrimary);
+const secondaryNavigation = navigation.filter((item) => !item.mobilePrimary);
+
+function isItemActive(pathname: string, href: string) {
+  if (href === "/dashboard") {
+    return pathname === href;
+  }
+
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+type DesktopLinkProps = {
+  item: NavigationItem;
   pathname: string;
-  onNavigate?: () => void;
-  onClose?: () => void;
 };
 
-function NavigationContent({
-  currentRole,
+function DesktopLink({ item, pathname }: DesktopLinkProps) {
+  const active = isItemActive(pathname, item.href);
+  const Icon = item.icon;
+
+  return (
+    <Link
+      href={item.href}
+      aria-label={item.label}
+      aria-current={active ? "page" : undefined}
+      className={[
+        "group flex min-h-11 items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
+        active
+          ? "bg-primary/10 text-primary"
+          : "text-muted-foreground hover:bg-primary/5 hover:text-foreground",
+      ].join(" ")}
+    >
+      <span
+        className={[
+          "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors",
+          active ? "bg-primary/10" : "bg-background group-hover:bg-card",
+        ].join(" ")}
+      >
+        <Icon aria-hidden="true" size={20} strokeWidth={1.8} />
+      </span>
+      <span className="flex-1">{item.label}</span>
+      <ChevronRight
+        aria-hidden="true"
+        size={16}
+        strokeWidth={1.8}
+        className={active ? "text-primary" : "text-muted-light"}
+      />
+    </Link>
+  );
+}
+
+type MorePanelProps = {
+  open: boolean;
+  pathname: string;
+  onClose: () => void;
+  closeButtonRef: RefObject<HTMLButtonElement | null>;
+};
+
+const focusableSelector = [
+  "a[href]",
+  "button:not([disabled])",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  '[tabindex]:not([tabindex="-1"])',
+].join(",");
+
+function MorePanel({
+  open,
   pathname,
-  onNavigate,
   onClose,
-}: NavigationContentProps) {
-  function isActive(href: string) {
-    if (href === "/dashboard") {
-      return pathname === href;
+  closeButtonRef,
+}: MorePanelProps) {
+  if (!open) {
+    return null;
+  }
+
+  function handlePanelKeyDown(event: React.KeyboardEvent<HTMLElement>) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      onClose();
+      return;
     }
 
-    return (
-      pathname === href ||
-      pathname.startsWith(`${href}/`)
+    if (event.key !== "Tab") {
+      return;
+    }
+
+    const focusableElements = Array.from(
+      event.currentTarget.querySelectorAll<HTMLElement>(focusableSelector),
     );
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements.at(-1);
+
+    if (!firstElement || !lastElement) {
+      event.preventDefault();
+      return;
+    }
+
+    if (event.shiftKey && document.activeElement === firstElement) {
+      event.preventDefault();
+      lastElement.focus();
+    } else if (!event.shiftKey && document.activeElement === lastElement) {
+      event.preventDefault();
+      firstElement.focus();
+    }
   }
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between gap-3">
-        <Link
-          href="/dashboard"
-          onClick={onNavigate}
-          className="flex min-w-0 items-center gap-3"
-        >
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-lg font-bold text-white shadow-sm">
-            C
-          </div>
-
-          <div className="min-w-0">
-            <p className="truncate text-lg font-bold tracking-[0.15em] text-emerald-700">
-              CARELUX
-            </p>
-
-            <p className="truncate text-xs text-slate-500">
-              Premium Care Platform
-            </p>
-          </div>
-        </Link>
-
-        {onClose && (
+    <div className="fixed inset-0 z-40 lg:hidden">
+      <button
+        type="button"
+        aria-label="Fechar navegação adicional"
+        onClick={onClose}
+        className="absolute inset-0 h-full w-full bg-black/40"
+      />
+      <section
+        id="mobile-more-navigation"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="mobile-more-title"
+        tabIndex={-1}
+        onKeyDown={handlePanelKeyDown}
+        className="card-warm animate-fade-slide-up absolute inset-x-0 bottom-0 max-h-[min(75dvh,36rem)] overflow-y-auto rounded-b-none rounded-t-[1.5rem] px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_24px_rgba(45,42,38,0.08)]"
+      >
+        <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-[#D4C9BA]" />
+        <div className="mb-3 flex items-center justify-between gap-4">
+          <h2 id="mobile-more-title" className="font-display text-xl leading-7">
+            Mais
+          </h2>
           <button
+            ref={closeButtonRef}
             type="button"
             onClick={onClose}
-            aria-label="Fechar menu"
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-xl text-slate-600 transition hover:bg-slate-100"
+            aria-label="Fechar painel Mais"
+            className="interactive-target rounded-xl text-muted-foreground transition-colors hover:bg-primary/5 hover:text-foreground"
           >
-            ×
+            <X aria-hidden="true" size={22} strokeWidth={1.8} />
           </button>
-        )}
-      </div>
-
-      <div className="mt-6 rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-cyan-50 p-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-          Perfil ativo
-        </p>
-
-        <p className="mt-2 font-semibold text-slate-900">
-          {currentRole}
-        </p>
-
-        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white">
-          <div className="h-full w-2/3 rounded-full bg-emerald-500" />
         </div>
-      </div>
+        <nav
+          aria-label="Navegação adicional"
+          className="grid gap-2 sm:grid-cols-2"
+        >
+          {secondaryNavigation.map((item) => {
+            const active = isItemActive(pathname, item.href);
+            const Icon = item.icon;
 
-      <nav
-        aria-label="Navegação principal"
-        className="mt-6 flex-1 space-y-1.5"
-      >
-        {navigation.map((item) => {
-          const active = isActive(item.href);
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onNavigate}
-              aria-current={active ? "page" : undefined}
-              className={[
-                "group flex min-h-12 items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium transition",
-                active
-                  ? "bg-emerald-600 text-white shadow-sm"
-                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-950",
-              ].join(" ")}
-            >
-              <span
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onClose}
+                aria-label={item.label}
+                aria-current={active ? "page" : undefined}
                 className={[
-                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[11px] font-bold transition",
+                  "flex min-h-11 items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
                   active
-                    ? "bg-white/20 text-white"
-                    : "bg-slate-100 text-slate-500 group-hover:bg-white",
+                    ? "bg-primary/10 text-primary"
+                    : "text-foreground hover:bg-primary/5",
                 ].join(" ")}
               >
-                {item.short}
-              </span>
-
-              <span className="flex-1">
-                {item.label}
-              </span>
-
-              <span
-                aria-hidden="true"
-                className={
-                  active
-                    ? "text-white/70"
-                    : "text-slate-400"
-                }
-              >
-                →
-              </span>
-            </Link>
-          );
-        })}
-      </nav>
-
-      <div className="mt-6 border-t border-slate-100 pt-5">
-        <p className="text-xs text-slate-400">
-          Gestão integrada de cuidados
-        </p>
-
-        <p className="mt-1 text-xs font-medium text-slate-500">
-          CareLux © 2026
-        </p>
-      </div>
+                <Icon aria-hidden="true" size={21} strokeWidth={1.8} />
+                <span className="flex-1">{item.label}</span>
+                <ChevronRight aria-hidden="true" size={16} strokeWidth={1.8} />
+              </Link>
+            );
+          })}
+        </nav>
+      </section>
     </div>
   );
 }
 
-export function Sidebar({
-  currentRole = "Administrador",
-}: SidebarProps) {
+export function Sidebar({ currentRole = "Administrador" }: SidebarProps) {
   const pathname = usePathname();
-  const [mobileOpen, setMobileOpen] =
-    useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreButtonRef = useRef<HTMLButtonElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const secondaryActive = secondaryNavigation.some((item) =>
+    isItemActive(pathname, item.href),
+  );
 
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [pathname]);
+  function openMorePanel() {
+    setMoreOpen(true);
+    requestAnimationFrame(() => closeButtonRef.current?.focus());
+  }
+
+  function closeMorePanel() {
+    setMoreOpen(false);
+    requestAnimationFrame(() => moreButtonRef.current?.focus());
+  }
 
   return (
     <>
-      {/* Cabeçalho de telemóvel e tablet */}
-      <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 px-4 py-3 shadow-sm backdrop-blur lg:hidden">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-3"
-          >
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 font-bold text-white">
-              C
-            </div>
-
-            <div>
-              <p className="text-sm font-bold tracking-[0.14em] text-emerald-700">
-                CARELUX
-              </p>
-
-              <p className="text-xs text-slate-500">
-                {currentRole}
-              </p>
-            </div>
-          </Link>
-
-          <button
-            type="button"
-            onClick={() => setMobileOpen(true)}
-            aria-label="Abrir menu"
-            aria-expanded={mobileOpen}
-            className="flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
-          >
-            <span
-              aria-hidden="true"
-              className="text-lg"
-            >
-              ☰
+      <aside className="card-warm fixed bottom-6 left-6 top-6 z-30 hidden w-72 overflow-y-auto p-5 lg:flex lg:flex-col">
+        <Link
+          href="/dashboard"
+          aria-label="CareLux — Início"
+          className="flex min-h-11 items-center gap-3 rounded-xl"
+        >
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary text-lg font-semibold text-primary-foreground shadow-[var(--shadow-primary)]">
+            C
+          </span>
+          <span className="min-w-0">
+            <span className="font-display block truncate text-2xl leading-8 text-foreground">
+              CareLux
             </span>
+            <span className="block truncate text-xs leading-4 text-muted-foreground">
+              Gestão de cuidados
+            </span>
+          </span>
+        </Link>
 
-            Menu
-          </button>
+        <div className="mt-5 rounded-2xl border border-border bg-background/70 p-4">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            Perfil ativo
+          </p>
+          <p className="mt-1.5 truncate text-sm font-semibold text-foreground">
+            {currentRole}
+          </p>
         </div>
-      </header>
 
-      {/* Sidebar de computador */}
-      <aside className="fixed bottom-6 left-6 top-6 z-30 hidden w-72 overflow-y-auto rounded-3xl border border-white/80 bg-white/95 p-5 shadow-[0_24px_70px_-40px_rgba(15,23,42,0.45)] backdrop-blur lg:block">
-        <NavigationContent
-          currentRole={currentRole}
-          pathname={pathname}
-        />
+        <nav
+          aria-label="Navegação principal"
+          className="mt-5 flex-1 space-y-1"
+        >
+          {navigation.map((item) => (
+            <DesktopLink key={item.href} item={item} pathname={pathname} />
+          ))}
+        </nav>
+
+        <div className="mt-5 border-t border-border pt-4">
+          <p className="text-xs leading-4 text-muted-foreground">
+            Gestão integrada de cuidados
+          </p>
+          <p className="mt-1 text-xs font-medium text-muted-foreground">
+            CareLux © 2026
+          </p>
+        </div>
       </aside>
 
-      {/* Menu deslizante de telemóvel e tablet */}
-      {mobileOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <button
-            type="button"
-            aria-label="Fechar menu"
-            onClick={() => setMobileOpen(false)}
-            className="absolute inset-0 bg-slate-950/45 backdrop-blur-sm"
-          />
+      <nav
+        aria-label="Navegação principal"
+        className="fixed inset-x-0 bottom-0 z-30 h-[calc(4.3rem+env(safe-area-inset-bottom))] border-t border-border bg-[var(--navigation-background)] pb-[env(safe-area-inset-bottom)] backdrop-blur-lg lg:hidden"
+      >
+        <div className="mx-auto grid h-[4.3rem] max-w-2xl grid-cols-5 gap-1 px-2 pt-2">
+          {primaryNavigation.map((item) => {
+            const active = isItemActive(pathname, item.href);
+            const Icon = item.icon;
 
-          <aside className="absolute inset-y-0 left-0 w-[min(88vw,320px)] overflow-y-auto bg-white p-5 shadow-2xl">
-            <NavigationContent
-              currentRole={currentRole}
-              pathname={pathname}
-              onNavigate={() =>
-                setMobileOpen(false)
-              }
-              onClose={() =>
-                setMobileOpen(false)
-              }
-            />
-          </aside>
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-label={item.label}
+                aria-current={active ? "page" : undefined}
+                className={[
+                  "flex min-h-11 min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[10px] leading-[15px] transition-colors",
+                  active
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-primary/5 hover:text-foreground",
+                ].join(" ")}
+              >
+                <Icon aria-hidden="true" size={22} strokeWidth={1.8} />
+                <span className="truncate">{item.label}</span>
+              </Link>
+            );
+          })}
+          <button
+            ref={moreButtonRef}
+            type="button"
+            onClick={openMorePanel}
+            aria-label="Mais opções"
+            aria-expanded={moreOpen}
+            aria-controls="mobile-more-navigation"
+            aria-current={secondaryActive ? "page" : undefined}
+            className={[
+              "flex min-h-11 min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[10px] leading-[15px] transition-colors",
+              secondaryActive || moreOpen
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-primary/5 hover:text-foreground",
+            ].join(" ")}
+          >
+            <MoreHorizontal aria-hidden="true" size={22} strokeWidth={1.8} />
+            <span>Mais</span>
+          </button>
         </div>
-      )}
+      </nav>
+
+      <MorePanel
+        open={moreOpen}
+        pathname={pathname}
+        onClose={closeMorePanel}
+        closeButtonRef={closeButtonRef}
+      />
     </>
   );
 }
