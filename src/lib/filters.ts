@@ -1,4 +1,4 @@
-import { requireClient, requireFacility } from "./auth";
+import { requireClient, requireFacility } from "./guards";
 
 export async function clientFilter() {
   const client = await requireClient();
