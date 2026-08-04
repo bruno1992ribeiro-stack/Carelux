@@ -1,6 +1,10 @@
+import { connection } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 export default async function AdminClientsPage() {
+  await connection();
+
   const clients = await prisma.client.findMany({
     include: {
       facilities: true,
