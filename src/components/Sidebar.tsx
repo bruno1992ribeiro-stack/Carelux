@@ -5,14 +5,22 @@ import type { RefObject } from "react";
 import {
   BedDouble,
   Building2,
+  ChartNoAxesColumn,
   ChevronRight,
+  ClipboardList,
   ContactRound,
+  FileUser,
+  HeartPulse,
   House,
+  ListChecks,
   MoreHorizontal,
+  Pill,
   Settings,
+  Sparkles,
   Users,
   UserRoundCog,
   UserRoundSearch,
+  WalletCards,
   X,
 } from "lucide-react";
 import Link from "next/link";
@@ -28,6 +36,10 @@ type NavigationItem = {
   href: string;
   icon: LucideIcon;
   mobilePrimary?: boolean;
+  activeHrefs?: readonly string[];
+  mobileActiveHrefs?: readonly string[];
+  exact?: boolean;
+  group: "Principal" | "Operação" | "Saúde" | "Gestão" | "Administração";
 };
 
 const navigation: NavigationItem[] = [
@@ -36,50 +48,122 @@ const navigation: NavigationItem[] = [
     href: "/dashboard",
     icon: House,
     mobilePrimary: true,
+    group: "Principal",
   },
   {
     label: "Lares",
     href: "/dashboard/facilities",
     icon: Building2,
-    mobilePrimary: true,
+    group: "Gestão",
   },
   {
     label: "Utentes",
     href: "/dashboard/residents",
     icon: Users,
     mobilePrimary: true,
+    group: "Principal",
   },
   {
     label: "Quartos",
     href: "/dashboard/rooms",
     icon: BedDouble,
-    mobilePrimary: true,
+    group: "Gestão",
   },
   {
     label: "Camas",
     href: "/dashboard/beds",
     icon: BedDouble,
+    group: "Gestão",
   },
   {
     label: "Familiares",
     href: "/dashboard/contacts",
     icon: ContactRound,
+    group: "Gestão",
   },
   {
     label: "Funcionários",
     href: "/dashboard/staff",
     icon: UserRoundCog,
+    group: "Administração",
   },
   {
     label: "Clientes",
     href: "/dashboard/clients",
     icon: UserRoundSearch,
+    group: "Administração",
   },
   {
     label: "Definições",
     href: "/dashboard/settings",
     icon: Settings,
+    group: "Administração",
   },
+  {
+    label: "Registos",
+    href: "/dashboard/daily-log",
+    icon: ClipboardList,
+    mobilePrimary: true,
+    mobileActiveHrefs: ["/dashboard/daily-living"],
+    group: "Operação",
+  },
+  {
+    label: "Atividades de Vida Diária",
+    href: "/dashboard/daily-living",
+    icon: ListChecks,
+    group: "Operação",
+  },
+  {
+    label: "Desenvolvimento Pessoal",
+    href: "/dashboard/personal-development",
+    icon: Sparkles,
+    group: "Operação",
+  },
+  {
+    label: "Saúde",
+    href: "/dashboard/health",
+    icon: HeartPulse,
+    exact: true,
+    activeHrefs: [
+      "/dashboard/health/appointments",
+      "/dashboard/health/vaccinations",
+      "/dashboard/health/wounds",
+    ],
+    group: "Saúde",
+  },
+  {
+    label: "Medicação",
+    href: "/dashboard/health/therapeutics",
+    icon: Pill,
+    mobilePrimary: true,
+    group: "Saúde",
+  },
+  {
+    label: "Estatísticas",
+    href: "/dashboard/statistics",
+    icon: ChartNoAxesColumn,
+    group: "Gestão",
+  },
+  {
+    label: "Mensalidades",
+    href: "/dashboard/fees",
+    icon: WalletCards,
+    group: "Gestão",
+  },
+  {
+    label: "Candidaturas",
+    href: "/dashboard/applications",
+    icon: FileUser,
+    group: "Gestão",
+  },
+];
+
+const navigationGroups: NavigationItem["group"][] = [
+  "Principal",
+  "Operação",
+  "Saúde",
+  "Gestão",
+  "Administração",
 ];
 
 const primaryNavigation = navigation.filter((item) => item.mobilePrimary);
@@ -93,13 +177,27 @@ function isItemActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+function isNavigationItemActive(pathname: string, item: NavigationItem) {
+  return (
+    (item.exact ? pathname === item.href : isItemActive(pathname, item.href)) ||
+    item.activeHrefs?.some((href) => isItemActive(pathname, href)) === true
+  );
+}
+
+function isMobileNavigationItemActive(pathname: string, item: NavigationItem) {
+  return (
+    isNavigationItemActive(pathname, item) ||
+    item.mobileActiveHrefs?.some((href) => isItemActive(pathname, href)) === true
+  );
+}
+
 type DesktopLinkProps = {
   item: NavigationItem;
   pathname: string;
 };
 
 function DesktopLink({ item, pathname }: DesktopLinkProps) {
-  const active = isItemActive(pathname, item.href);
+  const active = isNavigationItemActive(pathname, item);
   const Icon = item.icon;
 
   return (
@@ -227,7 +325,7 @@ function MorePanel({
           className="grid gap-2 sm:grid-cols-2"
         >
           {secondaryNavigation.map((item) => {
-            const active = isItemActive(pathname, item.href);
+            const active = isNavigationItemActive(pathname, item);
             const Icon = item.icon;
 
             return (
@@ -261,8 +359,11 @@ export function Sidebar({ currentRole = "Administrador" }: SidebarProps) {
   const [moreOpen, setMoreOpen] = useState(false);
   const moreButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const secondaryActive = secondaryNavigation.some((item) =>
-    isItemActive(pathname, item.href),
+  const primaryActive = primaryNavigation.some((item) =>
+    isMobileNavigationItemActive(pathname, item),
+  );
+  const secondaryActive = !primaryActive && secondaryNavigation.some((item) =>
+    isNavigationItemActive(pathname, item),
   );
 
   function openMorePanel() {
@@ -309,8 +410,23 @@ export function Sidebar({ currentRole = "Administrador" }: SidebarProps) {
           aria-label="Navegação principal"
           className="mt-5 flex-1 space-y-1"
         >
-          {navigation.map((item) => (
-            <DesktopLink key={item.href} item={item} pathname={pathname} />
+          {navigationGroups.map((group) => (
+            <div key={group} className="mt-4 first:mt-0">
+              <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-light">
+                {group}
+              </p>
+              <div className="space-y-1">
+                {navigation
+                  .filter((item) => item.group === group)
+                  .map((item) => (
+                    <DesktopLink
+                      key={item.href}
+                      item={item}
+                      pathname={pathname}
+                    />
+                  ))}
+              </div>
+            </div>
           ))}
         </nav>
 
@@ -330,7 +446,7 @@ export function Sidebar({ currentRole = "Administrador" }: SidebarProps) {
       >
         <div className="mx-auto grid h-[4.3rem] max-w-2xl grid-cols-5 gap-1 px-2 pt-2">
           {primaryNavigation.map((item) => {
-            const active = isItemActive(pathname, item.href);
+            const active = isMobileNavigationItemActive(pathname, item);
             const Icon = item.icon;
 
             return (
