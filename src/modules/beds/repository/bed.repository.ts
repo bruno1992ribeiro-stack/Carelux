@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
 
 import type {
@@ -5,7 +7,16 @@ import type {
   UpdateBedDTO,
 } from "../dto/bed.dto";
 
+type BedTransaction = Prisma.TransactionClient;
+type BedDb = typeof prisma | BedTransaction;
+
 export const bedRepository = {
+  async transaction<T>(callback: (tx: BedTransaction) => Promise<T>) {
+    return prisma.$transaction(callback, {
+      isolationLevel: "Serializable",
+    });
+  },
+
   async findAll(clientId: string) {
     return prisma.bed.findMany({
       where: {
@@ -46,9 +57,10 @@ export const bedRepository = {
 
   async findById(
     id: string,
-    clientId: string
+    clientId: string,
+    db: BedDb = prisma
   ) {
-    return prisma.bed.findFirst({
+    return db.bed.findFirst({
       where: {
         id,
         room: {
@@ -70,13 +82,21 @@ export const bedRepository = {
 
   async findRoomById(
     roomId: string,
-    clientId: string
+    clientId: string,
+    db: BedDb = prisma
   ) {
-    return prisma.room.findFirst({
+    return db.room.findFirst({
       where: {
         id: roomId,
         facility: {
           clientId,
+        },
+      },
+      include: {
+        facility: {
+          select: {
+            status: true,
+          },
         },
       },
     });
@@ -85,9 +105,10 @@ export const bedRepository = {
   async findDuplicate(
     roomId: string,
     identifier: string,
-    excludedBedId?: string
+    excludedBedId?: string,
+    db: BedDb = prisma
   ) {
-    return prisma.bed.findFirst({
+    return db.bed.findFirst({
       where: {
         roomId,
         identifier,
@@ -102,17 +123,18 @@ export const bedRepository = {
     });
   },
 
-  async create(data: CreateBedDTO) {
-    return prisma.bed.create({
+  async create(data: CreateBedDTO, db: BedDb = prisma) {
+    return db.bed.create({
       data,
     });
   },
 
   async update(
     id: string,
-    data: UpdateBedDTO
+    data: UpdateBedDTO,
+    db: BedDb = prisma
   ) {
-    return prisma.bed.update({
+    return db.bed.update({
       where: {
         id,
       },

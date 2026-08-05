@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { FacilityStatus } from "@prisma/client";
 
 import { AppError } from "@/lib/errors/app-error";
 import { prisma } from "@/lib/prisma";
@@ -38,11 +39,28 @@ export default async function EditResidentPage({
   }
 
   const facilityFilter = user.facilityId
-    ? { clientId: user.clientId, id: user.facilityId }
-    : { clientId: user.clientId };
+    ? {
+        clientId: user.clientId,
+        id: user.facilityId,
+        OR: [
+          { status: FacilityStatus.ACTIVE },
+          { id: resident.facilityId },
+        ],
+      }
+    : {
+        clientId: user.clientId,
+        OR: [
+          { status: FacilityStatus.ACTIVE },
+          { id: resident.facilityId },
+        ],
+      };
   const roomFilter = {
     facility: { clientId: user.clientId },
     ...(user.facilityId ? { facilityId: user.facilityId } : {}),
+    OR: [
+      { facility: { status: FacilityStatus.ACTIVE } },
+      ...(resident.roomId ? [{ id: resident.roomId }] : []),
+    ],
   };
 
   const [facilities, rooms, beds] = await Promise.all([

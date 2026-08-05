@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { FacilityStatus } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
 import { getCurrentClient } from "@/lib/session";
 import { BedForm } from "@/modules/beds/components/bed-form";
@@ -32,14 +34,14 @@ export default async function EditBedPage({
     );
   }
 
-  const [bed, rooms] = await Promise.all([
-    bedService.getById(id, client.id),
-
-    prisma.room.findMany({
+  const bed = await bedService.getById(id, client.id);
+  const rooms = await prisma.room.findMany({
       where: {
-        facility: {
-          clientId: client.id,
-        },
+        facility: { clientId: client.id },
+        OR: [
+          { facility: { status: FacilityStatus.ACTIVE } },
+          { id: bed.roomId },
+        ],
       },
 
       select: {
@@ -62,8 +64,7 @@ export default async function EditBedPage({
           number: "asc",
         },
       ],
-    }),
-  ]);
+    });
 
   return (
     <div className="space-y-6">

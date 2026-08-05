@@ -1,5 +1,7 @@
 ﻿import Link from "next/link";
 
+import { FacilityStatus } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
 import { getCurrentClient } from "@/lib/session";
 import { BedForm } from "@/modules/beds/components/bed-form";
@@ -25,6 +27,7 @@ export default async function NewBedPage() {
     where: {
       facility: {
         clientId: client.id,
+        status: FacilityStatus.ACTIVE,
       },
     },
 

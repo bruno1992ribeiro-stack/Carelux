@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FacilityStatus } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/session";
@@ -19,10 +20,17 @@ export default async function NewResidentPage() {
   }
 
   const facilityFilter = user.facilityId
-    ? { clientId: user.clientId, id: user.facilityId }
-    : { clientId: user.clientId };
+    ? {
+        clientId: user.clientId,
+        id: user.facilityId,
+        status: FacilityStatus.ACTIVE,
+      }
+    : { clientId: user.clientId, status: FacilityStatus.ACTIVE };
   const roomFilter = {
-    facility: { clientId: user.clientId },
+    facility: {
+      clientId: user.clientId,
+      status: FacilityStatus.ACTIVE,
+    },
     ...(user.facilityId ? { facilityId: user.facilityId } : {}),
   };
 
