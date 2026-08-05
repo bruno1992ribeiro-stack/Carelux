@@ -60,7 +60,7 @@ export default async function NewRoomPage() {
 
       <div className="rounded-xl border bg-white p-6 shadow">
         {facilities.length > 0 ? (
-          <RoomForm facilities={facilities} />
+          <RoomForm mode="create" facilities={facilities} />
         ) : (
           <div className="p-6 text-center">
             <p className="text-gray-500">
