@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
-export { Dialog, DialogTitle, DialogTrigger };
+export { Dialog, DialogClose, DialogTitle, DialogTrigger };
 
 type DialogContentProps = Omit<
   ComponentProps<typeof DialogPopup>,

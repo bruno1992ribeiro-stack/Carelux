@@ -10,6 +10,7 @@ export {
 } from "./card";
 export {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
