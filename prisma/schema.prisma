@@ -240,7 +240,7 @@ model ResidentContact {
 model User {
   id String @id @default(cuid())
 
-  clientId String
+  clientId String?
 
   facilityId String?
 
@@ -258,7 +258,7 @@ model User {
 
   updatedAt DateTime @updatedAt
 
-  client Client @relation(fields: [clientId], references: [id])
+  client Client? @relation(fields: [clientId], references: [id])
 
   facility Facility? @relation(fields: [facilityId], references: [id])
 

@@ -1,10 +1,11 @@
 import type { ReactNode } from "react";
 
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
-import { auth } from "@/lib/auth";
 import { Sidebar } from "@/components/Sidebar";
 import { PageContainer } from "@/components/PageContainer";
+import { getCurrentUser } from "@/lib/session";
+import { Role } from "@/modules/authorization/roles";
 import { getRoleById } from "@/services/role-service";
 
 interface DashboardLayoutProps {
@@ -14,10 +15,23 @@ interface DashboardLayoutProps {
 export default async function DashboardLayout({
   children,
 }: DashboardLayoutProps) {
-  const session = await auth();
+  const user = await getCurrentUser();
 
-  if (!session) {
+  if (!user) {
     redirect("/login");
+  }
+
+  if (
+    user.role?.code === Role.SUPER_ADMIN &&
+    user.role.clientId === null &&
+    user.clientId === null &&
+    user.facilityId === null
+  ) {
+    redirect("/admin");
+  }
+
+  if (!user.clientId || !user.client) {
+    notFound();
   }
 
   const role = getRoleById("administrator");

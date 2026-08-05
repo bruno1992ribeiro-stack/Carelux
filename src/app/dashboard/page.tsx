@@ -1,10 +1,10 @@
 import Link from "next/link";
 
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/session";
+import { getCurrentClientUser } from "@/lib/session";
 
 export default async function DashboardPage() {
-  const user = await getCurrentUser();
+  const user = await getCurrentClientUser();
 
   if (!user) {
     return (

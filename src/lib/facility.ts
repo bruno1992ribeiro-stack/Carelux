@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/session";
+import { getCurrentClientUser } from "@/lib/session";
 
 export async function getCurrentFacility() {
-  const user = await getCurrentUser();
+  const user = await getCurrentClientUser();
 
   if (!user) {
     throw new Error("Utilizador não autenticado.");

@@ -36,6 +36,20 @@ export async function getCurrentUser() {
   });
 }
 
+export async function getCurrentClientUser() {
+  const user = await getCurrentUser();
+
+  if (!user?.clientId || !user.client) {
+    return null;
+  }
+
+  return {
+    ...user,
+    clientId: user.clientId,
+    client: user.client,
+  };
+}
+
 export async function getCurrentClient() {
   const user = await getCurrentUser();
 

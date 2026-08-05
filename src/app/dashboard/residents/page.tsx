@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { getCurrentUser } from "@/lib/session";
+import { getCurrentClientUser } from "@/lib/session";
 import { DeleteResidentButton } from "@/modules/residents/components/delete-resident-button";
 import { residentService } from "@/modules/residents/services/resident.service";
 
@@ -29,7 +29,7 @@ function getStatusClasses(status: string) {
 const dateFormatter = new Intl.DateTimeFormat("pt-PT");
 
 export default async function ResidentsPage() {
-  const user = await getCurrentUser();
+  const user = await getCurrentClientUser();
 
   if (!user) {
     return (

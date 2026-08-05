@@ -1,9 +1,9 @@
 import type { Prisma } from "@prisma/client";
 
-import { getCurrentUser } from "@/lib/session";
+import { getCurrentClientUser } from "@/lib/session";
 
 export async function getResidentFilter(): Promise<Prisma.ResidentWhereInput> {
-  const user = await getCurrentUser();
+  const user = await getCurrentClientUser();
 
   if (!user) {
     throw new Error("Utilizador não encontrado.");

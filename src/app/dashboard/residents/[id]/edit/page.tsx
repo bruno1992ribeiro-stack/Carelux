@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { AppError } from "@/lib/errors/app-error";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/session";
+import { getCurrentClientUser } from "@/lib/session";
 import { ResidentForm } from "@/modules/residents/components/resident-form";
 import { residentService } from "@/modules/residents/services/resident.service";
 
@@ -19,7 +19,7 @@ export default async function EditResidentPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const user = await getCurrentUser();
+  const user = await getCurrentClientUser();
 
   if (!user) {
     notFound();

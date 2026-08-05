@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { AppError } from "@/lib/errors/app-error";
-import { getCurrentUser } from "@/lib/session";
+import { getCurrentClientUser } from "@/lib/session";
 
 import { residentService } from "./services/resident.service";
 import {
@@ -65,7 +65,7 @@ function getErrorState(error: unknown): ActionState {
 }
 
 async function getAuthenticatedScope() {
-  const user = await getCurrentUser();
+  const user = await getCurrentClientUser();
 
   if (!user) {
     throw new AppError(

@@ -1,11 +1,11 @@
 import Link from "next/link";
 
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/session";
+import { getCurrentClientUser } from "@/lib/session";
 import { ResidentForm } from "@/modules/residents/components/resident-form";
 
 export default async function NewResidentPage() {
-  const user = await getCurrentUser();
+  const user = await getCurrentClientUser();
 
   if (!user) {
     return (

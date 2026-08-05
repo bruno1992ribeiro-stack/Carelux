@@ -21,7 +21,9 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
 
   if (
     user.role?.code !== Role.SUPER_ADMIN ||
-    user.role.clientId !== null
+    user.role.clientId !== null ||
+    user.clientId !== null ||
+    user.facilityId !== null
   ) {
     notFound();
   }

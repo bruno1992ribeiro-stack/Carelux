@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AppError } from "@/lib/errors/app-error";
-import { getCurrentUser } from "@/lib/session";
+import { getCurrentClientUser } from "@/lib/session";
 import { DeleteResidentButton } from "@/modules/residents/components/delete-resident-button";
 import { residentService } from "@/modules/residents/services/resident.service";
 
@@ -31,7 +31,7 @@ export default async function ResidentDetailsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const user = await getCurrentUser();
+  const user = await getCurrentClientUser();
 
   if (!user) {
     notFound();

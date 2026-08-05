@@ -3,7 +3,7 @@ import { Permission } from "@/modules/authorization/permissions";
 
 type UserWithPermissions =
   | {
-      clientId: string;
+      clientId: string | null;
       role?: {
         clientId: string | null;
         permissions?: Array<{
