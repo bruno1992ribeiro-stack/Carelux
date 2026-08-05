@@ -93,6 +93,7 @@ export default async function EditBedPage({
 
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
         <BedForm
+          mode="edit"
           rooms={rooms}
           bed={{
             id: bed.id,
