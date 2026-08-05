@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { FacilityStatus } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 import { getCurrentClient } from "@/lib/session";
@@ -28,6 +29,10 @@ export default async function EditRoomPage({
   const facilities = await prisma.facility.findMany({
     where: {
       clientId: client.id,
+      OR: [
+        { status: FacilityStatus.ACTIVE },
+        { id: room.facilityId },
+      ],
     },
     orderBy: {
       name: "asc",

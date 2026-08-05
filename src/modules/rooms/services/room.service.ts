@@ -1,4 +1,5 @@
 import { AppError } from "@/lib/errors/app-error";
+import { FacilityStatus } from "@prisma/client";
 
 import { roomRepository } from "../repository/room.repository";
 import {
@@ -39,7 +40,31 @@ export const roomService = {
     const validated =
       roomSchema.parse(data);
 
-    return roomRepository.create(validated);
+    return roomRepository.transaction(async (tx) => {
+      const facility = await roomRepository.findFacilityById(
+        validated.facilityId,
+        clientId,
+        tx
+      );
+
+      if (!facility) {
+        throw new AppError(
+          "FACILITY_NOT_FOUND",
+          "O lar selecionado não pertence ao cliente autenticado.",
+          404
+        );
+      }
+
+      if (facility.status !== FacilityStatus.ACTIVE) {
+        throw new AppError(
+          "FACILITY_INACTIVE",
+          "Não é possível criar quartos num lar inativo.",
+          409
+        );
+      }
+
+      return roomRepository.create(validated, tx);
+    });
   },
 
   async update(
@@ -47,27 +72,46 @@ export const roomService = {
     clientId: string,
     data: Partial<RoomInput>
   ) {
-    const room =
-      await roomRepository.findById(
-        id,
-        clientId
-      );
-
-    if (!room) {
-      throw new AppError(
-        "ROOM_NOT_FOUND",
-        "Quarto não encontrado.",
-        404
-      );
-    }
-
     const validated =
       roomSchema.partial().parse(data);
 
-    return roomRepository.update(
-      id,
-      validated
-    );
+    return roomRepository.transaction(async (tx) => {
+      const room = await roomRepository.findById(id, clientId, tx);
+
+      if (!room) {
+        throw new AppError(
+          "ROOM_NOT_FOUND",
+          "Quarto não encontrado.",
+          404
+        );
+      }
+
+      if (validated.facilityId && validated.facilityId !== room.facilityId) {
+        const destination = await roomRepository.findFacilityById(
+          validated.facilityId,
+          clientId,
+          tx
+        );
+
+        if (!destination) {
+          throw new AppError(
+            "FACILITY_NOT_FOUND",
+            "O lar selecionado não pertence ao cliente autenticado.",
+            404
+          );
+        }
+
+        if (destination.status !== FacilityStatus.ACTIVE) {
+          throw new AppError(
+            "FACILITY_INACTIVE",
+            "Não é possível transferir o quarto para um lar inativo.",
+            409
+          );
+        }
+      }
+
+      return roomRepository.update(id, validated, tx);
+    });
   },
 
   async delete(

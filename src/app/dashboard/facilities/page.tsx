@@ -1,12 +1,30 @@
 import Link from "next/link";
+import { FacilityStatus } from "@prisma/client";
 
-import { getCurrentClient } from "@/lib/session";
+import { getCurrentUser } from "@/lib/session";
+import { Role } from "@/modules/authorization/roles";
+import { FacilityStatusDialog } from "@/modules/facilities/components/facility-status-dialog";
 import { facilityService } from "@/modules/facilities/services/facility.service";
 
-export default async function FacilitiesPage() {
-  const client = await getCurrentClient();
+type FacilityFilter = "active" | "inactive" | "all";
 
-  if (!client) {
+const filters: Array<{ label: string; value: FacilityFilter }> = [
+  { label: "Ativos", value: "active" },
+  { label: "Inativos", value: "inactive" },
+  { label: "Todos", value: "all" },
+];
+
+export default async function FacilitiesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) {
+  const user = await getCurrentUser();
+  const { status } = await searchParams;
+  const selectedFilter: FacilityFilter =
+    status === "inactive" || status === "all" ? status : "active";
+
+  if (!user?.client) {
     return (
       <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
         <h1 className="text-xl font-bold text-red-700">
@@ -20,7 +38,17 @@ export default async function FacilitiesPage() {
     );
   }
 
-  const facilities = await facilityService.findAll(client.id);
+  const facilityStatus =
+    selectedFilter === "active"
+      ? FacilityStatus.ACTIVE
+      : selectedFilter === "inactive"
+        ? FacilityStatus.INACTIVE
+        : "ALL";
+  const facilities = await facilityService.findAll(
+    user.client.id,
+    facilityStatus
+  );
+  const canManageStatus = user.role?.code === Role.ADMIN;
 
   return (
     <div className="min-w-0 space-y-6">
@@ -46,6 +74,32 @@ export default async function FacilitiesPage() {
           Novo Lar
         </Link>
       </header>
+
+      <nav aria-label="Filtrar lares" className="flex flex-wrap gap-2">
+        {filters.map((filter) => {
+          const selected = selectedFilter === filter.value;
+          const href =
+            filter.value === "active"
+              ? "/dashboard/facilities"
+              : `/dashboard/facilities?status=${filter.value}`;
+
+          return (
+            <Link
+              key={filter.value}
+              href={href}
+              aria-current={selected ? "page" : undefined}
+              className={[
+                "inline-flex min-h-11 items-center justify-center rounded-xl border px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+                selected
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border bg-card text-muted-foreground hover:bg-primary/5 hover:text-foreground",
+              ].join(" ")}
+            >
+              {filter.label}
+            </Link>
+          );
+        })}
+      </nav>
 
       {facilities.length === 0 ? (
         <section className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm sm:p-10">
@@ -143,14 +197,9 @@ export default async function FacilitiesPage() {
                     Editar
                   </Link>
 
-                  <button
-                    type="button"
-                    disabled
-                    title="A eliminação será ligada no próximo passo."
-                    className="min-h-11 cursor-not-allowed rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-400"
-                  >
-                    Eliminar
-                  </button>
+                  {canManageStatus && (
+                    <FacilityStatusDialog facility={facility} compact />
+                  )}
                 </div>
               </article>
             ))}
@@ -226,14 +275,9 @@ export default async function FacilitiesPage() {
                             Editar
                           </Link>
 
-                          <button
-                            type="button"
-                            disabled
-                            title="A eliminação será ligada no próximo passo."
-                            className="cursor-not-allowed rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm font-medium text-slate-400"
-                          >
-                            Eliminar
-                          </button>
+                          {canManageStatus && (
+                            <FacilityStatusDialog facility={facility} />
+                          )}
                         </div>
                       </td>
                     </tr>

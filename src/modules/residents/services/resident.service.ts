@@ -1,4 +1,4 @@
-import { ResidentStatus } from "@prisma/client";
+import { FacilityStatus, ResidentStatus } from "@prisma/client";
 
 import { AppError } from "@/lib/errors/app-error";
 
@@ -39,7 +39,9 @@ async function validateLocation(
   scope: ResidentScope,
   data: CreateResidentDTO,
   excludedResidentId: string | undefined,
+  currentRoomId: string | null | undefined,
   currentBedId: string | null | undefined,
+  currentFacilityId: string | undefined,
   tx: Parameters<Parameters<typeof residentRepository.transaction>[0]>[0]
 ) {
   const facility = await residentRepository.findFacilityById(
@@ -53,6 +55,28 @@ async function validateLocation(
       "FACILITY_NOT_FOUND",
       "O lar selecionado não pertence ao cliente autenticado.",
       404
+    );
+  }
+
+  if (
+    facility.status !== FacilityStatus.ACTIVE &&
+    data.facilityId !== currentFacilityId
+  ) {
+    throw new AppError(
+      "FACILITY_INACTIVE",
+      "Não é possível associar o utente a um lar inativo.",
+      409
+    );
+  }
+
+  if (
+    facility.status !== FacilityStatus.ACTIVE &&
+    (data.roomId !== currentRoomId || data.bedId !== currentBedId)
+  ) {
+    throw new AppError(
+      "FACILITY_INACTIVE",
+      "Não é possível alterar a localização de um utente num lar inativo.",
+      409
     );
   }
 
@@ -154,6 +178,8 @@ export const residentService = {
         validated,
         undefined,
         undefined,
+        undefined,
+        undefined,
         tx
       );
 
@@ -208,7 +234,15 @@ export const residentService = {
         })
       );
 
-      await validateLocation(scope, next, id, current.bedId, tx);
+      await validateLocation(
+        scope,
+        next,
+        id,
+        current.roomId,
+        current.bedId,
+        current.facilityId,
+        tx
+      );
 
       const resident = await residentRepository.update(id, scope, next, tx);
 
