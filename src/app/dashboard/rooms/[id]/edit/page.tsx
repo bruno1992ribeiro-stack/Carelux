@@ -70,6 +70,7 @@ export default async function EditRoomPage({
       <div className="rounded-xl border bg-white p-6 shadow">
 
         <RoomForm
+          mode="edit"
           facilities={facilities}
           room={{
             id: room.id,

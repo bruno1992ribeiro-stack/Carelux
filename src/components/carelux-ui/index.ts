@@ -30,3 +30,11 @@ export {
 } from "./field";
 export { Input, type InputProps } from "./input";
 export { Label } from "./label";
+export {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./select";
+export { Textarea, type TextareaProps } from "./textarea";
