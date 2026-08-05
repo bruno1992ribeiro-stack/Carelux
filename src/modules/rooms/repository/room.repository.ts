@@ -43,6 +43,18 @@ export const roomRepository = {
     });
   },
 
+  async findFacilityById(facilityId: string, clientId: string) {
+    return prisma.facility.findFirst({
+      where: {
+        id: facilityId,
+        clientId,
+      },
+      select: {
+        id: true,
+      },
+    });
+  },
+
   async create(data: CreateRoomDTO) {
     return prisma.room.create({
       data,

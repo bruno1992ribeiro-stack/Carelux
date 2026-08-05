@@ -39,6 +39,20 @@ export const roomService = {
     const validated =
       roomSchema.parse(data);
 
+    const facility =
+      await roomRepository.findFacilityById(
+        validated.facilityId,
+        clientId
+      );
+
+    if (!facility) {
+      throw new AppError(
+        "FACILITY_NOT_FOUND",
+        "O lar selecionado não pertence ao cliente autenticado.",
+        404
+      );
+    }
+
     return roomRepository.create(validated);
   },
 
@@ -63,6 +77,22 @@ export const roomService = {
 
     const validated =
       roomSchema.partial().parse(data);
+
+    if (validated.facilityId) {
+      const facility =
+        await roomRepository.findFacilityById(
+          validated.facilityId,
+          clientId
+        );
+
+      if (!facility) {
+        throw new AppError(
+          "FACILITY_NOT_FOUND",
+          "O lar selecionado não pertence ao cliente autenticado.",
+          404
+        );
+      }
+    }
 
     return roomRepository.update(
       id,
