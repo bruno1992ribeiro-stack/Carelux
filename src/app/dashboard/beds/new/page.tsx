@@ -76,7 +76,7 @@ export default async function NewBedPage() {
 
       <div className="rounded-xl border bg-white p-6 shadow">
         {rooms.length > 0 ? (
-          <BedForm rooms={rooms} />
+          <BedForm mode="create" rooms={rooms} />
         ) : (
           <div className="p-6 text-center">
             <p className="text-gray-500">
