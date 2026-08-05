@@ -2,15 +2,14 @@
 
 import { useState } from "react";
 
-import { Button } from "@/components/carelux-ui/button";
-
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/carelux-ui/dialog";
+} from "@/components/carelux-ui";
 
 import { FacilityForm } from "./facility-form";
 
@@ -25,9 +24,7 @@ export function CreateFacilityDialog() {
 
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>
-            Criar novo lar
-          </DialogTitle>
+          <DialogTitle>Criar novo lar</DialogTitle>
         </DialogHeader>
 
         <FacilityForm />

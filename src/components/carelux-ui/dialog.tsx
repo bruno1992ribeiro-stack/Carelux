@@ -1,16 +1,24 @@
 "use client";
 
-import { Dialog as BaseDialog } from "@base-ui/react/dialog";
 import { X } from "lucide-react";
 import type { ComponentProps } from "react";
-import { twMerge } from "tailwind-merge";
 
-export const Dialog = BaseDialog.Root;
-export const DialogTrigger = BaseDialog.Trigger;
-export const DialogTitle = BaseDialog.Title;
+import {
+  Dialog,
+  DialogClose,
+  DialogOverlay,
+  DialogPopup,
+  DialogPortal,
+  DialogTitle,
+  DialogTrigger,
+  DialogViewport,
+} from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
+
+export { Dialog, DialogTitle, DialogTrigger };
 
 type DialogContentProps = Omit<
-  ComponentProps<typeof BaseDialog.Popup>,
+  ComponentProps<typeof DialogPopup>,
   "className"
 > & {
   className?: string;
@@ -22,26 +30,26 @@ export function DialogContent({
   ...props
 }: DialogContentProps) {
   return (
-    <BaseDialog.Portal>
-      <BaseDialog.Backdrop className="fixed inset-0 z-40 bg-black/40 transition-opacity" />
-      <BaseDialog.Viewport className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4">
-        <BaseDialog.Popup
-          className={twMerge(
+    <DialogPortal>
+      <DialogOverlay className="fixed inset-0 z-40 bg-black/40 transition-opacity supports-backdrop-filter:backdrop-blur-none" />
+      <DialogViewport className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4">
+        <DialogPopup
+          className={cn(
             "card-warm relative max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto p-6",
             className
           )}
           {...props}
         >
           {children}
-          <BaseDialog.Close
+          <DialogClose
             aria-label="Fechar"
             className="interactive-target absolute right-3 top-3 rounded-xl text-muted-foreground transition-colors hover:bg-primary/5 hover:text-foreground"
           >
             <X aria-hidden="true" size={20} />
-          </BaseDialog.Close>
-        </BaseDialog.Popup>
-      </BaseDialog.Viewport>
-    </BaseDialog.Portal>
+          </DialogClose>
+        </DialogPopup>
+      </DialogViewport>
+    </DialogPortal>
   );
 }
 
@@ -51,7 +59,7 @@ export function DialogHeader({
 }: ComponentProps<"div">) {
   return (
     <div
-      className={twMerge("mb-6 space-y-1 pr-12", className)}
+      className={cn("mb-6 space-y-1 pr-12", className)}
       {...props}
     />
   );
