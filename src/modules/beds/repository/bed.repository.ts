@@ -17,10 +17,11 @@ export const bedRepository = {
     });
   },
 
-  async findAll(clientId: string) {
+  async findAll(clientId: string, facilityId?: string) {
     return prisma.bed.findMany({
       where: {
         room: {
+          ...(facilityId ? { facilityId } : {}),
           facility: {
             clientId,
           },

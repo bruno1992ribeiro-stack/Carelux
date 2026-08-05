@@ -10,10 +10,15 @@ import type {
 export type FacilityListStatus = FacilityStatus | "ALL";
 
 export const facilityRepository = {
-  async findAll(clientId: string, status: FacilityListStatus = "ALL") {
+  async findAll(
+    clientId: string,
+    status: FacilityListStatus = "ALL",
+    facilityId?: string
+  ) {
     return prisma.facility.findMany({
       where: {
         clientId,
+        ...(facilityId ? { id: facilityId } : {}),
         ...(status === "ALL" ? {} : { status }),
       },
       orderBy: {

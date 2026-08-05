@@ -13,8 +13,12 @@ import {
 import { AppError } from "@/lib/errors/app-error";
 
 export const facilityService = {
-  async findAll(clientId: string, status: FacilityListStatus = "ALL") {
-    return facilityRepository.findAll(clientId, status);
+  async findAll(
+    clientId: string,
+    status: FacilityListStatus = "ALL",
+    facilityId?: string
+  ) {
+    return facilityRepository.findAll(clientId, status, facilityId);
   },
 
   async getById(id: string, clientId: string) {
