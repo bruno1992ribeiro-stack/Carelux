@@ -29,7 +29,7 @@ export default function NewFacilityPage() {
 
       <div className="rounded-xl border bg-white p-6 shadow">
 
-        <FacilityForm />
+        <FacilityForm mode="create" />
 
       </div>
 

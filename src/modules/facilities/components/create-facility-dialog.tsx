@@ -27,7 +27,7 @@ export function CreateFacilityDialog() {
           <DialogTitle>Criar novo lar</DialogTitle>
         </DialogHeader>
 
-        <FacilityForm />
+        <FacilityForm mode="create" />
       </DialogContent>
     </Dialog>
   );

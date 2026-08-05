@@ -51,7 +51,7 @@ export default async function EditFacilityPage({
       </div>
 
       <div className="rounded-xl border bg-white p-6 shadow">
-        <FacilityForm facility={facility} />
+        <FacilityForm mode="edit" facility={facility} />
       </div>
     </div>
   );
