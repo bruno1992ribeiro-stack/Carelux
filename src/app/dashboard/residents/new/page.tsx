@@ -85,6 +85,7 @@ export default async function NewResidentPage() {
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
         {facilities.length ? (
           <ResidentForm
+            mode="create"
             facilities={facilities}
             rooms={rooms}
             beds={beds}

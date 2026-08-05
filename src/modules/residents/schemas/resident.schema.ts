@@ -14,14 +14,18 @@ const optionalIdSchema = z
 const optionalDateSchema = z
   .preprocess(
     emptyStringToNull,
-    z.coerce.date().nullable()
+    z.coerce
+      .date({ error: "Indique uma data válida." })
+      .nullable()
   )
   .default(null);
 
 const optionalGenderSchema = z
   .preprocess(
     emptyStringToNull,
-    z.nativeEnum(Gender).nullable()
+    z
+      .nativeEnum(Gender, { error: "Selecione um género válido." })
+      .nullable()
   )
   .default(null);
 
@@ -40,7 +44,9 @@ const residentBaseSchema = z.object({
   birthDate: optionalDateSchema,
   gender: optionalGenderSchema,
   admissionDate: optionalDateSchema,
-  status: z.nativeEnum(ResidentStatus).default(ResidentStatus.ACTIVE),
+  status: z
+    .nativeEnum(ResidentStatus, { error: "Selecione um estado válido." })
+    .default(ResidentStatus.ACTIVE),
 });
 
 export const residentSchema = residentBaseSchema.superRefine(

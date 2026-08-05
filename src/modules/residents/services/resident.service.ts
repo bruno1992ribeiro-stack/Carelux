@@ -119,7 +119,7 @@ async function validateLocation(
     );
   }
 
-  if (!bed.active) {
+  if (!bed.active && bed.id !== currentBedId) {
     throw new AppError(
       "BED_INACTIVE",
       "A cama selecionada não está ativa.",

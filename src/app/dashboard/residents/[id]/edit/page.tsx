@@ -78,7 +78,15 @@ export default async function EditResidentPage({
       where: {
         room: roomFilter,
         OR: [
-          { active: true, occupied: false },
+          {
+            active: true,
+            occupied: false,
+            room: {
+              facility: {
+                status: FacilityStatus.ACTIVE,
+              },
+            },
+          },
           ...(resident.bedId ? [{ id: resident.bedId }] : []),
         ],
       },
@@ -115,6 +123,7 @@ export default async function EditResidentPage({
 
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
         <ResidentForm
+          mode="edit"
           facilities={facilities}
           rooms={rooms}
           beds={beds}
@@ -127,7 +136,7 @@ export default async function EditResidentPage({
             firstName: resident.firstName,
             lastName: resident.lastName,
             birthDate: toDateInput(resident.birthDate),
-            gender: resident.gender ?? "",
+            gender: resident.gender,
             admissionDate: toDateInput(resident.admissionDate),
             status: resident.status,
           }}
