@@ -200,6 +200,8 @@ For every frontend task:
 
 If the relevant Whacka/CareLuxe reference material is not available in the current task context, do not invent a new visual pattern. Reuse the closest existing CareLux pattern and explicitly report that the reference material was unavailable.
 
+The decision-making and ambiguity rules defined in the root `AGENTS.md` apply without exception to all work under `src/`.
+
 Do not modify unrelated frontend areas while completing a scoped task.
 
 ## Mandatory checks

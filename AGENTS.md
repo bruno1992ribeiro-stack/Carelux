@@ -9,6 +9,16 @@ CareLux is a senior-care management platform for residential care homes, day cen
 - Inspect the current implementation before creating new components, routes, models or APIs.
 - Reuse existing components and utilities whenever possible.
 
+## Decision-making and ambiguity
+
+Never assume, infer, guess or silently choose a product, design, user-experience, workflow, business-rule, data-model, permission, security, migration or architectural decision that has not been explicitly defined by the user or by an authoritative CareLux project document.
+
+Whenever information is missing, conflicting, ambiguous or allows more than one reasonable interpretation, stop before changing code and ask the user an explicit and focused question describing the decision required, the available options, the relevant trade-offs and the affected behaviour or files.
+
+Do not treat silence, missing reference material, placeholder content or an existing accidental implementation as approval.
+
+Rules explicitly established in the applicable `AGENTS.md`, the CareLux design-system documentation or the current user instruction are authoritative decisions and do not require reconfirmation.
+
 ## Technology
 - Next.js App Router
 - React
