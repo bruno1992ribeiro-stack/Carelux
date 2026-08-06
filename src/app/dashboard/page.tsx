@@ -136,7 +136,7 @@ export default async function DashboardPage() {
             </h1>
 
             <p className="mt-3 max-w-2xl text-sm leading-6 text-emerald-50 sm:text-base">
-              Acompanhe os lares, quartos, camas e
+              Acompanhe as unidades, quartos, camas e
               utentes da plataforma CareLux.
             </p>
           </div>
@@ -164,7 +164,7 @@ export default async function DashboardPage() {
           className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-5"
         >
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Lares
+            Unidades
           </p>
 
           <p className="mt-2 text-3xl font-bold text-slate-900">
@@ -229,12 +229,12 @@ export default async function DashboardPage() {
       </section>
 
       <div className="grid min-w-0 gap-6 xl:grid-cols-[1.5fr_1fr]">
-        {/* Lares */}
+        {/* Unidades */}
         <section className="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
           <div className="flex items-center justify-between gap-4">
             <div>
               <h2 className="text-xl font-bold text-slate-900">
-                Os seus lares
+                As suas unidades
               </h2>
 
               <p className="mt-1 text-sm text-slate-500">
@@ -246,21 +246,21 @@ export default async function DashboardPage() {
               href="/dashboard/facilities"
               className="shrink-0 text-sm font-semibold text-emerald-700 hover:text-emerald-800"
             >
-              Ver todos
+              Ver todas
             </Link>
           </div>
 
           {facilities.length === 0 ? (
             <div className="mt-6 rounded-2xl border border-dashed border-slate-300 p-8 text-center">
               <p className="font-semibold text-slate-800">
-                Ainda não existem lares
+                Ainda não existem unidades
               </p>
 
               <Link
                 href="/dashboard/facilities/new"
                 className="mt-4 inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-600 px-5 text-sm font-semibold text-white"
               >
-                Criar primeiro lar
+                Criar primeira unidade
               </Link>
             </div>
           ) : (
@@ -363,7 +363,7 @@ export default async function DashboardPage() {
                 className="flex min-h-20 flex-col justify-center rounded-2xl border border-slate-200 p-4 transition hover:border-emerald-200 hover:bg-emerald-50"
               >
                 <span className="font-semibold text-slate-900">
-                  Novo lar
+                  Nova unidade
                 </span>
 
                 <span className="mt-1 text-xs text-slate-500">
@@ -380,7 +380,7 @@ export default async function DashboardPage() {
                 </span>
 
                 <span className="mt-1 text-xs text-slate-500">
-                  Associar a um lar
+                  Associar a uma unidade
                 </span>
               </Link>
 

@@ -57,7 +57,7 @@ export function FacilityListFilter({
     id: string | null;
     label: string;
   }> = [
-    { id: null, label: "Todos" },
+    { id: null, label: "Todas" },
     ...facilities.map((facility) => ({
       id: facility.id,
       label:

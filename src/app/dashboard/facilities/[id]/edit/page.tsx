@@ -34,7 +34,7 @@ export default async function EditFacilityPage({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">
-            Editar Lar
+            Editar Unidade
           </h1>
 
           <p className="text-gray-500">

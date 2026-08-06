@@ -54,7 +54,7 @@ export default async function ResidentDetailsPage({
     ["Nascimento", resident.birthDate ? dateFormatter.format(resident.birthDate) : "Não indicado"],
     ["Género", resident.gender ? genderLabels[resident.gender] ?? resident.gender : "Não indicado"],
     ["Admissão", resident.admissionDate ? dateFormatter.format(resident.admissionDate) : "Não indicada"],
-    ["Lar", resident.facility.name],
+    ["Unidade", resident.facility.name],
     ["Quarto", resident.room?.number ?? "Não atribuído"],
     ["Cama", resident.bed?.identifier ?? "Não atribuída"],
     ["Criado em", dateTimeFormatter.format(resident.createdAt)],

@@ -147,7 +147,7 @@ export function RoomForm({ mode, facilities, room }: RoomFormProps) {
 
       <FieldGroup>
         <Field data-invalid={Boolean(errors.facilityId)}>
-          <FieldLabel htmlFor="room-facility">Lar</FieldLabel>
+          <FieldLabel htmlFor="room-facility">Unidade</FieldLabel>
           <Controller
             name="facilityId"
             control={control}
@@ -169,7 +169,7 @@ export function RoomForm({ mode, facilities, room }: RoomFormProps) {
                     errors.facilityId ? "room-facility-error" : undefined
                   }
                 >
-                  <SelectValue placeholder="Selecione um lar" />
+                  <SelectValue placeholder="Selecione uma unidade" />
                 </SelectTrigger>
                 <SelectContent>
                   {facilities.map((facility) => (

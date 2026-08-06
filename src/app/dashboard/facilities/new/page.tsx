@@ -10,11 +10,11 @@ export default function NewFacilityPage() {
 
         <div>
           <h1 className="text-3xl font-bold">
-            Novo Lar
+            Nova Unidade
           </h1>
 
           <p className="text-gray-500">
-            Criar um novo lar.
+            Criar uma nova unidade.
           </p>
         </div>
 

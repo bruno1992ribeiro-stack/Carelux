@@ -46,7 +46,7 @@ export default async function NewRoomPage() {
           </h1>
 
           <p className="text-gray-500">
-            Criar um novo quarto e associá-lo a um lar.
+            Criar um novo quarto e associá-lo a uma unidade.
           </p>
         </div>
 
@@ -64,14 +64,14 @@ export default async function NewRoomPage() {
         ) : (
           <div className="p-6 text-center">
             <p className="text-gray-500">
-              Ainda não existem lares disponíveis.
+              Ainda não existem unidades disponíveis.
             </p>
 
             <Link
               href="/dashboard/facilities/new"
               className="mt-4 inline-block rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
             >
-              Criar Lar
+              Criar Unidade
             </Link>
           </div>
         )}

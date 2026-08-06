@@ -30,7 +30,7 @@ const optionalGenderSchema = z
   .default(null);
 
 const residentBaseSchema = z.object({
-  facilityId: z.string().min(1, "Deve selecionar um lar."),
+  facilityId: z.string().min(1, "Deve selecionar uma unidade."),
   roomId: optionalIdSchema,
   bedId: optionalIdSchema,
   firstName: z

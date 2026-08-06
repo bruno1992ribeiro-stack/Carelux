@@ -210,7 +210,7 @@ export function ResidentForm({
       ((bed.active && !bed.occupied) || bed.id === resident?.bedId)
   );
   const getFacilityName = (id: string) =>
-    facilities.find((facility) => facility.id === id)?.name ?? "Lar";
+    facilities.find((facility) => facility.id === id)?.name ?? "Unidade";
   const getRoom = (id: string) => rooms.find((room) => room.id === id);
   const getRoomLabel = (room: RoomOption) =>
     `${getFacilityName(room.facilityId)} — Quarto ${room.number}`;
@@ -475,7 +475,7 @@ export function ResidentForm({
             data-invalid={Boolean(errors.facilityId)}
             data-disabled={(facilityLocked || isSubmitting) || undefined}
           >
-            <FieldLabel htmlFor="resident-facility">Lar</FieldLabel>
+            <FieldLabel htmlFor="resident-facility">Unidade</FieldLabel>
             <Controller
               name="facilityId"
               control={control}
@@ -515,7 +515,7 @@ export function ResidentForm({
                         : undefined
                     }
                   >
-                    <SelectValue placeholder="Selecione um lar" />
+                    <SelectValue placeholder="Selecione uma unidade" />
                   </SelectTrigger>
                   <SelectContent>
                     {facilities.map((facility) => (

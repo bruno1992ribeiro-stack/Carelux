@@ -5,7 +5,7 @@ export const mainNavigation = [
     current: false,
   },
   {
-    label: "Lares",
+    label: "Unidades",
     href: "/dashboard/facilities",
     current: false,
   },

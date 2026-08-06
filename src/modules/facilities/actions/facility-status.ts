@@ -32,7 +32,7 @@ async function requireTenantAdmin() {
   if (!user.clientId || user.role?.code !== Role.ADMIN) {
     throw new AppError(
       "FORBIDDEN",
-      "Não tem permissão para alterar o estado deste lar.",
+      "Não tem permissão para alterar o estado desta unidade.",
       403
     );
   }
@@ -67,7 +67,7 @@ export async function deactivateFacility(
   }
 
   revalidateFacilityPaths();
-  return { success: true, message: "Lar desativado com sucesso." };
+  return { success: true, message: "Unidade desativada com sucesso." };
 }
 
 export async function reactivateFacility(
@@ -84,5 +84,5 @@ export async function reactivateFacility(
   }
 
   revalidateFacilityPaths();
-  return { success: true, message: "Lar reativado com sucesso." };
+  return { success: true, message: "Unidade reativada com sucesso." };
 }

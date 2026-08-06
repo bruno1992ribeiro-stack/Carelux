@@ -178,20 +178,20 @@ function FacilityStatusDialogContent({
     <DialogContent className={compact ? "max-w-md" : undefined}>
         <DialogHeader>
           <DialogTitle>
-            {active ? "Desativar lar" : "Reativar lar"}
+            {active ? "Desativar unidade" : "Reativar unidade"}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
             {active
-              ? `Confirma a desativação de “${facilityName}”? Os dados serão preservados, mas o lar deixará de aceitar novas atribuições e operações.`
-              : `Confirma a reativação de “${facilityName}”? O lar voltará a aceitar novas atribuições e operações.`}
+              ? `Confirma a desativação de “${facilityName}”? Os dados serão preservados, mas a unidade deixará de aceitar novas atribuições e operações.`
+              : `Confirma a reativação de “${facilityName}”? A unidade voltará a aceitar novas atribuições e operações.`}
           </p>
 
           {active && (
             <p className="text-sm text-muted-foreground">
-              A operação será bloqueada se este for o último lar ativo ou se
+              A operação será bloqueada se esta for a última unidade ativa ou se
               ainda existirem contas, funcionários ou utentes com vínculo
               ativo.
             </p>

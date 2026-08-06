@@ -107,7 +107,7 @@ export function FacilityForm({ mode, facility }: FacilityFormProps) {
 
       <FieldGroup>
         <Field data-invalid={Boolean(errors.name)}>
-          <FieldLabel htmlFor="facility-name">Nome</FieldLabel>
+          <FieldLabel htmlFor="facility-name">Nome da unidade</FieldLabel>
           <Input
             id="facility-name"
             autoComplete="organization"

@@ -30,7 +30,7 @@ export const facilityService = {
     if (!facility) {
       throw new AppError(
         "FACILITY_NOT_FOUND",
-        "Lar não encontrado.",
+        "Unidade não encontrada.",
         404
       );
     }
@@ -64,7 +64,7 @@ export const facilityService = {
     if (!existingFacility) {
       throw new AppError(
         "FACILITY_NOT_FOUND",
-        "Lar não encontrado.",
+        "Unidade não encontrada.",
         404
       );
     }
@@ -92,7 +92,7 @@ export const facilityService = {
       if (!context) {
         throw new AppError(
           "FACILITY_NOT_FOUND",
-          "Lar não encontrado.",
+          "Unidade não encontrada.",
           404
         );
       }
@@ -100,7 +100,7 @@ export const facilityService = {
       if (context.facility.status !== FacilityStatus.ACTIVE) {
         throw new AppError(
           "FACILITY_ALREADY_INACTIVE",
-          "Este lar já está inativo.",
+          "Esta unidade já está inativa.",
           409
         );
       }
@@ -108,7 +108,7 @@ export const facilityService = {
       if (actorFacilityId === id) {
         throw new AppError(
           "ADMIN_ASSIGNED_TO_FACILITY",
-          "Reassocie primeiro a sua conta a outro lar.",
+          "Reassocie primeiro a sua conta a outra unidade.",
           409
         );
       }
@@ -116,7 +116,7 @@ export const facilityService = {
       if (context.activeFacilities <= 1) {
         throw new AppError(
           "LAST_ACTIVE_FACILITY",
-          "Não é possível desativar o último lar ativo.",
+          "Não é possível desativar a última unidade ativa.",
           409
         );
       }
@@ -124,7 +124,7 @@ export const facilityService = {
       if (context.activeUsers > 0) {
         throw new AppError(
           "ACTIVE_USERS_ASSIGNED",
-          "Reassocie primeiro os utilizadores ativos deste lar.",
+          "Reassocie primeiro os utilizadores ativos desta unidade.",
           409
         );
       }
@@ -132,7 +132,7 @@ export const facilityService = {
       if (context.activeStaff > 0) {
         throw new AppError(
           "ACTIVE_STAFF_ASSIGNED",
-          "Existem funcionários ativos associados a este lar.",
+          "Existem funcionários ativos associados a esta unidade.",
           409
         );
       }
@@ -140,7 +140,7 @@ export const facilityService = {
       if (context.activeResidents > 0) {
         throw new AppError(
           "ACTIVE_RESIDENTS_ASSIGNED",
-          "Existem utentes ativos ou hospitalizados associados a este lar.",
+          "Existem utentes ativos ou hospitalizados associados a esta unidade.",
           409
         );
       }
@@ -156,7 +156,7 @@ export const facilityService = {
       if (result.count !== 1) {
         throw new AppError(
           "FACILITY_STATUS_CONFLICT",
-          "O estado do lar foi alterado. Atualize a página e tente novamente.",
+          "O estado da unidade foi alterado. Atualize a página e tente novamente.",
           409
         );
       }
@@ -173,7 +173,7 @@ export const facilityService = {
       if (!facility) {
         throw new AppError(
           "FACILITY_NOT_FOUND",
-          "Lar não encontrado.",
+          "Unidade não encontrada.",
           404
         );
       }
@@ -181,7 +181,7 @@ export const facilityService = {
       if (facility.status !== FacilityStatus.INACTIVE) {
         throw new AppError(
           "FACILITY_ALREADY_ACTIVE",
-          "Este lar já está ativo.",
+          "Esta unidade já está ativa.",
           409
         );
       }
@@ -197,7 +197,7 @@ export const facilityService = {
       if (result.count !== 1) {
         throw new AppError(
           "FACILITY_STATUS_CONFLICT",
-          "O estado do lar foi alterado. Atualize a página e tente novamente.",
+          "O estado da unidade foi alterado. Atualize a página e tente novamente.",
           409
         );
       }
@@ -217,7 +217,7 @@ export const facilityService = {
     if (!existingFacility) {
       throw new AppError(
         "FACILITY_NOT_FOUND",
-        "Lar não encontrado.",
+        "Unidade não encontrada.",
         404
       );
     }

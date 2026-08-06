@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const roomSchema = z.object({
-  facilityId: z.string().min(1, "Selecione um lar."),
+  facilityId: z.string().min(1, "Selecione uma unidade."),
   number: z.string().trim().min(1, "Indique o número do quarto."),
   floor: z.string().trim().optional(),
   capacity: z

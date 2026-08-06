@@ -73,7 +73,7 @@ export default async function ResidentsPage({
           </p>
           <h1 className="mt-1 text-3xl font-bold text-slate-900">Utentes</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Consulte e gira os utentes registados nos seus lares.
+            Consulte e gira os utentes registados nas suas unidades.
           </p>
         </div>
         <Link
@@ -200,7 +200,7 @@ export default async function ResidentsPage({
                   <tr>
                     {[
                       ["Utente", "w-[22%]"],
-                      ["Lar", "w-[17%]"],
+                      ["Unidade", "w-[17%]"],
                       ["Quarto", "w-[10%]"],
                       ["Cama", "w-[10%]"],
                       ["Admissão", "w-[13%]"],

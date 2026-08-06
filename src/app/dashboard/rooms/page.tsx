@@ -48,7 +48,7 @@ export default async function RoomsPage({
           </h1>
 
           <p className="mt-1 text-sm text-slate-500">
-            Gestão dos quartos pertencentes aos seus lares.
+            Gestão dos quartos pertencentes às suas unidades.
           </p>
         </div>
 
@@ -160,7 +160,7 @@ export default async function RoomsPage({
                 <thead className="border-b border-slate-200 bg-slate-50">
                   <tr>
                     <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Lar
+                      Unidade
                     </th>
 
                     <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
