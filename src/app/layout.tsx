@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     template: "%s | CareLux",
   },
   description:
-    "Plataforma de gestão para lares, residências sénior e cuidados continuados.",
+    "Plataforma de gestão para unidades, residências sénior e cuidados continuados.",
 };
 
 export default function RootLayout({

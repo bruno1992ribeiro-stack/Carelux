@@ -19,12 +19,12 @@ export function CreateFacilityDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button />}>
-        + Novo Lar
+        + Nova Unidade
       </DialogTrigger>
 
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Criar novo lar</DialogTitle>
+          <DialogTitle>Criar nova unidade</DialogTitle>
         </DialogHeader>
 
         <FacilityForm mode="create" />

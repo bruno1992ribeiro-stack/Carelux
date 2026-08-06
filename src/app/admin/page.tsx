@@ -45,7 +45,7 @@ export default async function AdminClientsPage() {
               </th>
 
               <th className="p-4 text-left">
-                Lares
+                Unidades
               </th>
 
               <th className="p-4 text-left">

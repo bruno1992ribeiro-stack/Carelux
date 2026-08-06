@@ -64,7 +64,7 @@ export default async function FacilitiesPage({
           </h1>
 
           <p className="mt-1 text-sm text-slate-500">
-            Gestão das unidades pertencentes ao seu cliente.
+            Consulte e gira as unidades da sua organização.
           </p>
         </div>
 
@@ -72,7 +72,7 @@ export default async function FacilitiesPage({
           href="/dashboard/facilities/new"
           className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 sm:w-auto"
         >
-          Novo Lar
+          Nova Unidade
         </Link>
       </header>
 
@@ -88,7 +88,7 @@ export default async function FacilitiesPage({
         variant="dashboard"
       />
 
-      <nav aria-label="Filtrar lares" className="flex flex-wrap gap-2">
+      <nav aria-label="Selecionar unidade" className="flex flex-wrap gap-2">
         {filters.map((filter) => {
           const selected = selectedFilter === filter.value;
           const params = new URLSearchParams();
@@ -131,11 +131,11 @@ export default async function FacilitiesPage({
           </div>
 
           <h2 className="mt-4 text-lg font-semibold text-slate-900">
-            Ainda não existem lares
+            Ainda não existem unidades
           </h2>
 
           <p className="mt-2 text-sm text-slate-500">
-            Crie o primeiro lar para começar a organizar quartos,
+            Crie a primeira unidade para começar a organizar quartos,
             camas e utentes.
           </p>
 
@@ -143,7 +143,7 @@ export default async function FacilitiesPage({
             href="/dashboard/facilities/new"
             className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
           >
-            Criar primeiro lar
+            Criar primeira unidade
           </Link>
         </section>
       ) : (
@@ -158,7 +158,7 @@ export default async function FacilitiesPage({
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600">
-                      Lar
+                      Unidade
                     </p>
 
                     <h2 className="mt-1 break-words text-xl font-bold text-slate-900">

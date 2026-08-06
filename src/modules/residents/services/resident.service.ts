@@ -53,7 +53,7 @@ async function validateLocation(
   if (!facility) {
     throw new AppError(
       "FACILITY_NOT_FOUND",
-      "O lar selecionado não pertence ao cliente autenticado.",
+      "A unidade selecionada não pertence ao cliente autenticado.",
       404
     );
   }
@@ -64,7 +64,7 @@ async function validateLocation(
   ) {
     throw new AppError(
       "FACILITY_INACTIVE",
-      "Não é possível associar o utente a um lar inativo.",
+      "Não é possível associar o utente a uma unidade inativa.",
       409
     );
   }
@@ -75,7 +75,7 @@ async function validateLocation(
   ) {
     throw new AppError(
       "FACILITY_INACTIVE",
-      "Não é possível alterar a localização de um utente num lar inativo.",
+      "Não é possível alterar a localização de um utente numa unidade inativa.",
       409
     );
   }
@@ -94,7 +94,7 @@ async function validateLocation(
   if (!room) {
     throw new AppError(
       "ROOM_NOT_FOUND",
-      "O quarto selecionado não pertence ao lar do utente.",
+      "O quarto selecionado não pertence à unidade do utente.",
       404
     );
   }

@@ -93,7 +93,7 @@ export default async function NewResidentPage() {
           />
         ) : (
           <div className="p-6 text-center text-sm text-slate-500">
-            Não existem lares disponíveis para registar o utente.
+            Não existem unidades disponíveis para registar o utente.
           </div>
         )}
       </div>

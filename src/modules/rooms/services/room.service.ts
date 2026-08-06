@@ -50,7 +50,7 @@ export const roomService = {
       if (!facility) {
         throw new AppError(
           "FACILITY_NOT_FOUND",
-          "O lar selecionado não pertence ao cliente autenticado.",
+          "A unidade selecionada não pertence ao cliente autenticado.",
           404
         );
       }
@@ -58,7 +58,7 @@ export const roomService = {
       if (facility.status !== FacilityStatus.ACTIVE) {
         throw new AppError(
           "FACILITY_INACTIVE",
-          "Não é possível criar quartos num lar inativo.",
+          "Não é possível criar quartos numa unidade inativa.",
           409
         );
       }
@@ -96,7 +96,7 @@ export const roomService = {
         if (!destination) {
           throw new AppError(
             "FACILITY_NOT_FOUND",
-            "O lar selecionado não pertence ao cliente autenticado.",
+            "A unidade selecionada não pertence ao cliente autenticado.",
             404
           );
         }
@@ -104,7 +104,7 @@ export const roomService = {
         if (destination.status !== FacilityStatus.ACTIVE) {
           throw new AppError(
             "FACILITY_INACTIVE",
-            "Não é possível transferir o quarto para um lar inativo.",
+            "Não é possível transferir o quarto para uma unidade inativa.",
             409
           );
         }

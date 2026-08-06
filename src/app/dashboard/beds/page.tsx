@@ -248,7 +248,7 @@ export default async function BedsPage({
                 <thead className="border-b border-slate-200 bg-slate-50">
                   <tr>
                     <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Lar
+                      Unidade
                     </th>
 
                     <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">

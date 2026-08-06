@@ -14,7 +14,7 @@ const navigation = [
     short: "DB",
   },
   {
-    label: "Lares",
+    label: "Unidades",
     href: "/dashboard/facilities",
     short: "LR",
   },

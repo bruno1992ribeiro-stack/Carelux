@@ -56,7 +56,7 @@ export const bedService = {
       if (room.facility.status !== FacilityStatus.ACTIVE) {
         throw new AppError(
           "FACILITY_INACTIVE",
-          "Não é possível criar camas num lar inativo.",
+          "Não é possível criar camas numa unidade inativa.",
           409
         );
       }
@@ -118,7 +118,7 @@ export const bedService = {
       ) {
         throw new AppError(
           "FACILITY_INACTIVE",
-          "Não é possível transferir a cama para um lar inativo.",
+          "Não é possível transferir a cama para uma unidade inativa.",
           409
         );
       }
