@@ -8,8 +8,8 @@ import {
 } from "../schemas/bed.schema";
 
 export const bedService = {
-  async findAll(clientId: string) {
-    return bedRepository.findAll(clientId);
+  async findAll(clientId: string, facilityId?: string) {
+    return bedRepository.findAll(clientId, facilityId);
   },
 
   async getById(

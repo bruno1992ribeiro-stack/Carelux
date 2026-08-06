@@ -17,9 +17,10 @@ export const roomRepository = {
     });
   },
 
-  async findAll(clientId: string) {
+  async findAll(clientId: string, facilityId?: string) {
     return prisma.room.findMany({
       where: {
+        ...(facilityId ? { facilityId } : {}),
         facility: {
           clientId,
         },

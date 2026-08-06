@@ -1,27 +1,36 @@
 import Link from "next/link";
 
-import { getCurrentClient } from "@/lib/session";
-import { bedService } from "@/modules/beds/services/bed.service";
+import { StructureNavigation } from "@/components/dashboard/structure-navigation";
+import { getFacilityReadScope } from "@/lib/facility-read-scope";
 import { deleteBed } from "@/modules/beds/actions/delete-bed";
+import { bedService } from "@/modules/beds/services/bed.service";
+import { facilityService } from "@/modules/facilities/services/facility.service";
 
-export default async function BedsPage() {
-  const client = await getCurrentClient();
+type BedsSearchParams = Record<string, string | string[] | undefined>;
 
-  if (!client) {
-    return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
-        <h1 className="text-xl font-bold text-red-700">
-          Cliente não encontrado
-        </h1>
-
-        <p className="mt-2 text-sm text-red-600">
-          Não foi possível identificar o cliente da sessão.
-        </p>
-      </div>
-    );
-  }
-
-  const beds = await bedService.findAll(client.id);
+export default async function BedsPage({
+  searchParams,
+}: {
+  searchParams: Promise<BedsSearchParams>;
+}) {
+  const scope = await getFacilityReadScope();
+  const resolvedSearchParams = await searchParams;
+  const authorizedFacilities = await facilityService.findAll(
+    scope.clientId,
+    "ALL",
+    scope.type === "facility" ? scope.facilityId : undefined
+  );
+  const requestedFacilityId = resolvedSearchParams.facilityId;
+  const selectedFacility =
+    typeof requestedFacilityId === "string"
+      ? authorizedFacilities.find(
+          (facility) => facility.id === requestedFacilityId
+        )
+      : undefined;
+  const effectiveFacilityId =
+    selectedFacility?.id ??
+    (scope.type === "facility" ? scope.facilityId : undefined);
+  const beds = await bedService.findAll(scope.clientId, effectiveFacilityId);
 
   const totalBeds = beds.length;
 
@@ -61,6 +70,15 @@ export default async function BedsPage() {
           Nova Cama
         </Link>
       </div>
+
+      <StructureNavigation
+        activeSection="beds"
+        basePath="/dashboard/beds"
+        facilities={authorizedFacilities}
+        facilityCount={authorizedFacilities.length}
+        selectedFacilityId={selectedFacility?.id ?? null}
+        searchParams={resolvedSearchParams}
+      />
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -115,7 +133,9 @@ export default async function BedsPage() {
           </h2>
 
           <p className="mt-2 text-sm text-slate-500">
-            Crie uma cama e associe-a a um quarto.
+            {selectedFacility
+              ? `Não existem camas registadas em ${selectedFacility.name}.`
+              : "Ainda não existem camas registadas."}
           </p>
 
           <Link

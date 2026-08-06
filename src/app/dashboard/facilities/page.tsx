@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { FacilityStatus } from "@prisma/client";
 
-import { getCurrentUser } from "@/lib/session";
-import { Role } from "@/modules/authorization/roles";
+import { StructureNavigation } from "@/components/dashboard/structure-navigation";
+import { getFacilityReadScope } from "@/lib/facility-read-scope";
 import { FacilityStatusDialog } from "@/modules/facilities/components/facility-status-dialog";
 import { facilityService } from "@/modules/facilities/services/facility.service";
 
@@ -17,26 +17,25 @@ const filters: Array<{ label: string; value: FacilityFilter }> = [
 export default async function FacilitiesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const user = await getCurrentUser();
-  const { status } = await searchParams;
+  const scope = await getFacilityReadScope();
+  const resolvedSearchParams = await searchParams;
+  const status = resolvedSearchParams.status;
   const selectedFilter: FacilityFilter =
     status === "inactive" || status === "all" ? status : "active";
-
-  if (!user?.client) {
-    return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
-        <h1 className="text-xl font-bold text-red-700">
-          Cliente não encontrado
-        </h1>
-
-        <p className="mt-2 text-sm text-red-600">
-          Não foi possível identificar o cliente da sessão.
-        </p>
-      </div>
-    );
-  }
+  const authorizedFacilities = await facilityService.findAll(
+    scope.clientId,
+    "ALL",
+    scope.type === "facility" ? scope.facilityId : undefined
+  );
+  const requestedFacilityId = resolvedSearchParams.facilityId;
+  const selectedFacility =
+    typeof requestedFacilityId === "string"
+      ? authorizedFacilities.find(
+          (facility) => facility.id === requestedFacilityId
+        )
+      : undefined;
 
   const facilityStatus =
     selectedFilter === "active"
@@ -45,10 +44,12 @@ export default async function FacilitiesPage({
         ? FacilityStatus.INACTIVE
         : "ALL";
   const facilities = await facilityService.findAll(
-    user.client.id,
-    facilityStatus
+    scope.clientId,
+    facilityStatus,
+    selectedFacility?.id ??
+      (scope.type === "facility" ? scope.facilityId : undefined)
   );
-  const canManageStatus = user.role?.code === Role.ADMIN;
+  const canManageStatus = scope.type === "client";
 
   return (
     <div className="min-w-0 space-y-6">
@@ -75,13 +76,34 @@ export default async function FacilitiesPage({
         </Link>
       </header>
 
+      <StructureNavigation
+        activeSection="facilities"
+        basePath="/dashboard/facilities"
+        facilities={authorizedFacilities}
+        facilityCount={authorizedFacilities.length}
+        selectedFacilityId={selectedFacility?.id ?? null}
+        searchParams={{
+          status: selectedFilter === "active" ? undefined : selectedFilter,
+        }}
+      />
+
       <nav aria-label="Filtrar lares" className="flex flex-wrap gap-2">
         {filters.map((filter) => {
           const selected = selectedFilter === filter.value;
-          const href =
-            filter.value === "active"
-              ? "/dashboard/facilities"
-              : `/dashboard/facilities?status=${filter.value}`;
+          const params = new URLSearchParams();
+
+          if (filter.value !== "active") {
+            params.set("status", filter.value);
+          }
+
+          if (selectedFacility) {
+            params.set("facilityId", selectedFacility.id);
+          }
+
+          const query = params.toString();
+          const href = query
+            ? `/dashboard/facilities?${query}`
+            : "/dashboard/facilities";
 
           return (
             <Link

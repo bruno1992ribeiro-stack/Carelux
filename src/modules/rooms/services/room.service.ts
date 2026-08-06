@@ -8,8 +8,8 @@ import {
 } from "../schemas/room.schema";
 
 export const roomService = {
-  async findAll(clientId: string) {
-    return roomRepository.findAll(clientId);
+  async findAll(clientId: string, facilityId?: string) {
+    return roomRepository.findAll(clientId, facilityId);
   },
 
   async getById(

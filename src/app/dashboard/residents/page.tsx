@@ -1,6 +1,8 @@
 import Link from "next/link";
 
-import { getCurrentUser } from "@/lib/session";
+import { StructureNavigation } from "@/components/dashboard/structure-navigation";
+import { getFacilityReadScope } from "@/lib/facility-read-scope";
+import { facilityService } from "@/modules/facilities/services/facility.service";
 import { DeleteResidentButton } from "@/modules/residents/components/delete-resident-button";
 import { residentService } from "@/modules/residents/services/resident.service";
 
@@ -28,23 +30,33 @@ function getStatusClasses(status: string) {
 
 const dateFormatter = new Intl.DateTimeFormat("pt-PT");
 
-export default async function ResidentsPage() {
-  const user = await getCurrentUser();
+type ResidentsSearchParams = Record<string, string | string[] | undefined>;
 
-  if (!user) {
-    return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
-        <h1 className="text-xl font-bold text-red-700">Utilizador não encontrado</h1>
-        <p className="mt-2 text-sm text-red-600">
-          Não foi possível identificar o utilizador da sessão.
-        </p>
-      </div>
-    );
-  }
-
+export default async function ResidentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<ResidentsSearchParams>;
+}) {
+  const scope = await getFacilityReadScope();
+  const resolvedSearchParams = await searchParams;
+  const authorizedFacilities = await facilityService.findAll(
+    scope.clientId,
+    "ALL",
+    scope.type === "facility" ? scope.facilityId : undefined
+  );
+  const requestedFacilityId = resolvedSearchParams.facilityId;
+  const selectedFacility =
+    typeof requestedFacilityId === "string"
+      ? authorizedFacilities.find(
+          (facility) => facility.id === requestedFacilityId
+        )
+      : undefined;
+  const effectiveFacilityId =
+    selectedFacility?.id ??
+    (scope.type === "facility" ? scope.facilityId : undefined);
   const residents = await residentService.findAll({
-    clientId: user.clientId,
-    facilityId: user.facilityId,
+    clientId: scope.clientId,
+    facilityId: effectiveFacilityId,
   });
   const activeResidents = residents.filter((resident) => resident.status === "ACTIVE").length;
   const hospitalizedResidents = residents.filter(
@@ -72,6 +84,15 @@ export default async function ResidentsPage() {
         </Link>
       </header>
 
+      <StructureNavigation
+        activeSection="residents"
+        basePath="/dashboard/residents"
+        facilities={authorizedFacilities}
+        facilityCount={authorizedFacilities.length}
+        selectedFacilityId={selectedFacility?.id ?? null}
+        searchParams={resolvedSearchParams}
+      />
+
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[
           ["Total", residents.length, "border-slate-200 bg-white text-slate-900"],
@@ -95,7 +116,9 @@ export default async function ResidentsPage() {
             Ainda não existem utentes
           </h2>
           <p className="mt-2 text-sm text-slate-500">
-            Registe o primeiro utente e associe-o a um lar.
+            {selectedFacility
+              ? `Não existem utentes registados em ${selectedFacility.name}.`
+              : "Ainda não existem utentes registados."}
           </p>
           <Link
             href="/dashboard/residents/new"
@@ -170,28 +193,29 @@ export default async function ResidentsPage() {
             ))}
           </section>
 
-          <section className="hidden overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:block">
-            <table className="w-full table-fixed">
-              <thead className="border-b border-slate-200 bg-slate-50">
-                <tr>
-                  {[
-                    ["Utente", "w-[22%]"],
-                    ["Lar", "w-[17%]"],
-                    ["Quarto", "w-[10%]"],
-                    ["Cama", "w-[10%]"],
-                    ["Admissão", "w-[13%]"],
-                    ["Estado", "w-[13%]"],
-                    ["Ações", "w-[15%] text-right"],
-                  ].map(([label, width]) => (
-                    <th key={label} className={`px-4 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 ${width}`}>
-                      {label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {residents.map((resident) => (
-                  <tr key={resident.id} className="transition hover:bg-slate-50">
+          <section className="hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:block">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[1040px]">
+                <thead className="border-b border-slate-200 bg-slate-50">
+                  <tr>
+                    {[
+                      ["Utente", "w-[22%]"],
+                      ["Lar", "w-[17%]"],
+                      ["Quarto", "w-[10%]"],
+                      ["Cama", "w-[10%]"],
+                      ["Admissão", "w-[13%]"],
+                      ["Estado", "w-[13%]"],
+                      ["Ações", "w-[250px] text-right"],
+                    ].map(([label, width]) => (
+                      <th key={label} className={`px-4 py-4 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 ${width}`}>
+                        {label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {residents.map((resident) => (
+                    <tr key={resident.id} className="transition hover:bg-slate-50">
                     <td className="truncate px-4 py-4 text-sm font-semibold text-slate-900">
                       {resident.firstName} {resident.lastName}
                     </td>
@@ -206,24 +230,25 @@ export default async function ResidentsPage() {
                         {getStatusLabel(resident.status)}
                       </span>
                     </td>
-                    <td className="px-4 py-4">
-                      <div className="flex justify-end gap-1.5">
-                        <Link href={`/dashboard/residents/${resident.id}`} className="rounded-lg border border-slate-300 px-2.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100">
+                    <td className="whitespace-nowrap px-4 py-4 pr-5">
+                      <div className="flex min-w-max justify-end gap-1.5">
+                        <Link href={`/dashboard/residents/${resident.id}`} className="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-slate-300 px-2.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100">
                           Ver
                         </Link>
-                        <Link href={`/dashboard/residents/${resident.id}/edit`} className="rounded-lg border border-slate-300 px-2.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100">
+                        <Link href={`/dashboard/residents/${resident.id}/edit`} className="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-slate-300 px-2.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100">
                           Editar
                         </Link>
                         <DeleteResidentButton
                           residentId={resident.id}
-                          className="min-h-9 rounded-lg border border-red-200 px-2.5 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
+                          className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-lg border border-red-200 px-2.5 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
                         />
                       </div>
                     </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </section>
         </>
       )}

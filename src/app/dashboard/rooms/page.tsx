@@ -1,27 +1,39 @@
 import Link from "next/link";
 
-import { getCurrentClient } from "@/lib/session";
-import { roomService } from "@/modules/rooms/services/room.service";
+import { StructureNavigation } from "@/components/dashboard/structure-navigation";
+import { getFacilityReadScope } from "@/lib/facility-read-scope";
+import { facilityService } from "@/modules/facilities/services/facility.service";
 import { deleteRoom } from "@/modules/rooms/actions/delete-room";
+import { roomService } from "@/modules/rooms/services/room.service";
 
-export default async function RoomsPage() {
-  const client = await getCurrentClient();
+type RoomsSearchParams = Record<string, string | string[] | undefined>;
 
-  if (!client) {
-    return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
-        <h1 className="text-xl font-bold text-red-700">
-          Cliente não encontrado
-        </h1>
-
-        <p className="mt-2 text-sm text-red-600">
-          Não foi possível identificar o cliente da sessão.
-        </p>
-      </div>
-    );
-  }
-
-  const rooms = await roomService.findAll(client.id);
+export default async function RoomsPage({
+  searchParams,
+}: {
+  searchParams: Promise<RoomsSearchParams>;
+}) {
+  const scope = await getFacilityReadScope();
+  const resolvedSearchParams = await searchParams;
+  const authorizedFacilities = await facilityService.findAll(
+    scope.clientId,
+    "ALL",
+    scope.type === "facility" ? scope.facilityId : undefined
+  );
+  const requestedFacilityId = resolvedSearchParams.facilityId;
+  const selectedFacility =
+    typeof requestedFacilityId === "string"
+      ? authorizedFacilities.find(
+          (facility) => facility.id === requestedFacilityId
+        )
+      : undefined;
+  const effectiveFacilityId =
+    selectedFacility?.id ??
+    (scope.type === "facility" ? scope.facilityId : undefined);
+  const rooms = await roomService.findAll(
+    scope.clientId,
+    effectiveFacilityId
+  );
 
   return (
     <div className="min-w-0 space-y-6">
@@ -48,6 +60,15 @@ export default async function RoomsPage() {
         </Link>
       </div>
 
+      <StructureNavigation
+        activeSection="rooms"
+        basePath="/dashboard/rooms"
+        facilities={authorizedFacilities}
+        facilityCount={authorizedFacilities.length}
+        selectedFacilityId={selectedFacility?.id ?? null}
+        searchParams={resolvedSearchParams}
+      />
+
       {rooms.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm">
           <h2 className="text-lg font-semibold text-slate-900">
@@ -55,7 +76,9 @@ export default async function RoomsPage() {
           </h2>
 
           <p className="mt-2 text-sm text-slate-500">
-            Crie um quarto e associe-o a um lar.
+            {selectedFacility
+              ? `Não existem quartos registados em ${selectedFacility.name}.`
+              : "Ainda não existem quartos registados."}
           </p>
 
           <Link
