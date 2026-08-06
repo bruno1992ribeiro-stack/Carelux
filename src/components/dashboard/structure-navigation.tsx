@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BedDouble, DoorOpen, Users, type LucideIcon } from "lucide-react";
 
 import {
   FacilityListFilter,
@@ -21,16 +22,33 @@ type StructureNavigationProps = {
   facilityCount: number;
   searchParams?: Record<string, SearchParamValue>;
   selectedFacilityId: string | null;
+  variant?: "compact" | "dashboard";
 };
 
-const sections: Array<{
+export const structureSections: Array<{
   href: string;
+  icon: LucideIcon;
   label: string;
   value: Exclude<StructureSection, "facilities">;
 }> = [
-  { href: "/dashboard/rooms", label: "Quartos", value: "rooms" },
-  { href: "/dashboard/beds", label: "Camas", value: "beds" },
-  { href: "/dashboard/residents", label: "Utentes", value: "residents" },
+  {
+    href: "/dashboard/residents",
+    icon: Users,
+    label: "Utentes",
+    value: "residents",
+  },
+  {
+    href: "/dashboard/rooms",
+    icon: DoorOpen,
+    label: "Quartos",
+    value: "rooms",
+  },
+  {
+    href: "/dashboard/beds",
+    icon: BedDouble,
+    label: "Camas",
+    value: "beds",
+  },
 ];
 
 export function StructureNavigation({
@@ -40,6 +58,7 @@ export function StructureNavigation({
   facilityCount,
   searchParams,
   selectedFacilityId,
+  variant = "compact",
 }: StructureNavigationProps) {
   const facilityLabel = facilityCount === 1 ? "Unidade" : "Unidades";
   const facilityHref = selectedFacilityId
@@ -73,10 +92,20 @@ export function StructureNavigation({
         searchParams={searchParams}
       />
 
-      <nav aria-label="Áreas da unidade" className="overflow-x-auto pb-1">
-        <div className="flex min-w-max gap-2">
-          {sections.map((section) => {
+      <nav
+        aria-label="Áreas da unidade"
+        className={variant === "compact" ? "overflow-x-auto pb-1" : undefined}
+      >
+        <div
+          className={cn(
+            variant === "dashboard"
+              ? "grid gap-3 sm:grid-cols-3"
+              : "flex min-w-max gap-2"
+          )}
+        >
+          {structureSections.map((section) => {
             const active = section.value === activeSection;
+            const Icon = section.icon;
             const href = selectedFacilityId
               ? `${section.href}?facilityId=${encodeURIComponent(selectedFacilityId)}`
               : section.href;
@@ -87,15 +116,23 @@ export function StructureNavigation({
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-xl border px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30",
-                  active
-                    ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                    : "border-border bg-card text-muted-foreground hover:bg-primary/5 hover:text-foreground"
+                  "group inline-flex items-center rounded-xl border font-semibold transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30",
+                  variant === "dashboard"
+                    ? "card-warm min-h-24 justify-start gap-4 px-5 py-4 text-base text-foreground hover:border-primary/30 hover:bg-primary/5"
+                    : "min-h-11 justify-center gap-2 whitespace-nowrap px-4 py-2 text-sm",
+                  variant === "compact" &&
+                    (active
+                      ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                      : "border-border bg-card text-muted-foreground hover:bg-primary/5 hover:text-foreground")
                 )}
               >
-                {active && (
+                {variant === "dashboard" ? (
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">
+                    <Icon aria-hidden="true" size={22} strokeWidth={1.8} />
+                  </span>
+                ) : active ? (
                   <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
-                )}
+                ) : null}
                 {section.label}
               </Link>
             );

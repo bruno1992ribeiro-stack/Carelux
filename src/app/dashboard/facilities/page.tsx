@@ -60,11 +60,11 @@ export default async function FacilitiesPage({
           </p>
 
           <h1 className="mt-1 text-3xl font-bold text-slate-900">
-            Lares
+            Unidades
           </h1>
 
           <p className="mt-1 text-sm text-slate-500">
-            Gestão dos lares pertencentes ao seu cliente.
+            Gestão das unidades pertencentes ao seu cliente.
           </p>
         </div>
 
@@ -85,6 +85,7 @@ export default async function FacilitiesPage({
         searchParams={{
           status: selectedFilter === "active" ? undefined : selectedFilter,
         }}
+        variant="dashboard"
       />
 
       <nav aria-label="Filtrar lares" className="flex flex-wrap gap-2">
