@@ -3,7 +3,6 @@
 import type { LucideIcon } from "lucide-react";
 import type { RefObject } from "react";
 import {
-  BedDouble,
   Building2,
   ChartNoAxesColumn,
   ChevronRight,
@@ -17,7 +16,6 @@ import {
   Pill,
   Settings,
   Sparkles,
-  Users,
   UserRoundCog,
   UserRoundSearch,
   WalletCards,
@@ -51,29 +49,16 @@ const navigation: NavigationItem[] = [
     group: "Principal",
   },
   {
-    label: "Lares",
+    label: "Unidades",
     href: "/dashboard/facilities",
     icon: Building2,
-    group: "Gestão",
-  },
-  {
-    label: "Utentes",
-    href: "/dashboard/residents",
-    icon: Users,
     mobilePrimary: true,
+    activeHrefs: [
+      "/dashboard/rooms",
+      "/dashboard/beds",
+      "/dashboard/residents",
+    ],
     group: "Principal",
-  },
-  {
-    label: "Quartos",
-    href: "/dashboard/rooms",
-    icon: BedDouble,
-    group: "Gestão",
-  },
-  {
-    label: "Camas",
-    href: "/dashboard/beds",
-    icon: BedDouble,
-    group: "Gestão",
   },
   {
     label: "Familiares",
