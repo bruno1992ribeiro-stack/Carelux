@@ -270,37 +270,4 @@ export const residentService = {
     });
   },
 
-  async delete(id: string, scope: ResidentScope) {
-    return residentRepository.transaction(async (tx) => {
-      const resident = await residentRepository.findById(id, scope, tx);
-
-      if (!resident) {
-        throw new AppError(
-          "RESIDENT_NOT_FOUND",
-          "Utente não encontrado.",
-          404
-        );
-      }
-
-      const deleted = await residentRepository.delete(id, scope, tx);
-
-      if (!deleted) {
-        throw new AppError(
-          "RESIDENT_NOT_FOUND",
-          "Utente não encontrado.",
-          404
-        );
-      }
-
-      if (resident.bedId) {
-        await residentRepository.syncBedOccupancy(
-          resident.bedId,
-          scope,
-          tx
-        );
-      }
-
-      return resident;
-    });
-  },
 };

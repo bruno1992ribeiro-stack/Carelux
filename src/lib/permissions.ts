@@ -1,10 +1,14 @@
 import { AppError } from "@/lib/errors/app-error";
+import { isGlobalSuperAdmin } from "@/lib/user-scope";
 import { Permission } from "@/modules/authorization/permissions";
+import { Role } from "@/modules/authorization/roles";
 
 type UserWithPermissions =
   | {
-      clientId: string;
+      clientId: string | null;
+      facilityId: string | null;
       role?: {
+        code: string;
         clientId: string | null;
         permissions?: Array<{
           permission: {
@@ -21,8 +25,16 @@ const permissionCodes = new Set<string>(Object.values(Permission));
 export function getUserPermissionCodes(
   user: UserWithPermissions,
 ): Permission[] {
-  if (
-    !user?.role ||
+  if (!user?.role) {
+    return [];
+  }
+
+  if (user.role.code === Role.SUPER_ADMIN) {
+    if (!isGlobalSuperAdmin(user)) {
+      return [];
+    }
+  } else if (
+    user.clientId === null ||
     (user.role.clientId !== null && user.role.clientId !== user.clientId)
   ) {
     return [];

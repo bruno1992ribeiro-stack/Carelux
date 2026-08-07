@@ -210,21 +210,6 @@ export const residentRepository = {
     return residentRepository.findById(id, scope, db);
   },
 
-  async delete(
-    id: string,
-    scope: ResidentScope,
-    db: ResidentDb = prisma
-  ) {
-    const result = await db.resident.deleteMany({
-      where: {
-        id,
-        ...getScopeWhere(scope),
-      },
-    });
-
-    return result.count > 0;
-  },
-
   async syncBedOccupancy(
     bedId: string,
     scope: ResidentScope,

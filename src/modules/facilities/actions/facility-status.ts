@@ -29,7 +29,11 @@ async function requireTenantAdmin() {
     );
   }
 
-  if (!user.clientId || user.role?.code !== Role.ADMIN) {
+  if (
+    !user.clientId ||
+    user.role?.code !== Role.ADMIN ||
+    (user.role.clientId !== null && user.role.clientId !== user.clientId)
+  ) {
     throw new AppError(
       "FORBIDDEN",
       "Não tem permissão para alterar o estado desta unidade.",
@@ -37,7 +41,11 @@ async function requireTenantAdmin() {
     );
   }
 
-  return user;
+  return {
+    ...user,
+    clientId: user.clientId,
+    role: user.role,
+  };
 }
 
 function getErrorState(error: unknown): FacilityStatusActionState {

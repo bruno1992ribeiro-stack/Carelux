@@ -126,8 +126,12 @@ export async function seedRoles(client: Prisma.TransactionClient) {
         name: role.name,
         description: role.description,
         isSystem: role.isSystem,
+        clientId: null,
       },
-      create: role,
+      create: {
+        ...role,
+        clientId: null,
+      },
     });
   }
 

@@ -4,7 +4,7 @@ import { FacilityStatus } from "@prisma/client";
 
 import { AppError } from "@/lib/errors/app-error";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/session";
+import { getCurrentClientUser } from "@/lib/session";
 import { ResidentForm } from "@/modules/residents/components/resident-form";
 import { residentService } from "@/modules/residents/services/resident.service";
 
@@ -20,11 +20,7 @@ export default async function EditResidentPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const user = await getCurrentUser();
-
-  if (!user) {
-    notFound();
-  }
+  const user = await getCurrentClientUser();
 
   const scope = { clientId: user.clientId, facilityId: user.facilityId };
   let resident;

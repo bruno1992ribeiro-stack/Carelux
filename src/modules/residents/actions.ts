@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { AppError } from "@/lib/errors/app-error";
 import { getCurrentUser } from "@/lib/session";
+import { isGlobalSuperAdmin } from "@/lib/user-scope";
 
 import { residentService } from "./services/resident.service";
 import {
@@ -72,6 +73,20 @@ async function getAuthenticatedScope() {
       "UNAUTHENTICATED",
       "A sessão terminou. Inicie sessão novamente.",
       401
+    );
+  }
+
+  if (
+    isGlobalSuperAdmin(user) ||
+    !user.clientId ||
+    !user.client ||
+    !user.role ||
+    (user.role.clientId !== null && user.role.clientId !== user.clientId)
+  ) {
+    throw new AppError(
+      "FORBIDDEN",
+      "Não tem acesso a operações de utentes deste cliente.",
+      403,
     );
   }
 
@@ -152,21 +167,4 @@ export async function updateResident(
 
   revalidateResidentPaths();
   redirect(RESIDENT_PATH);
-}
-
-export async function deleteResident(id: string): Promise<ActionState> {
-  try {
-    const scope = await getAuthenticatedScope();
-
-    await residentService.delete(id, scope);
-  } catch (error) {
-    return getErrorState(error);
-  }
-
-  revalidateResidentPaths();
-
-  return {
-    success: true,
-    message: "Utente eliminado com sucesso.",
-  };
 }

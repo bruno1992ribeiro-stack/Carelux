@@ -80,16 +80,13 @@ export const facilityRepository = {
       return null;
     }
 
-    const [activeFacilities, activeUsers, activeStaff, activeResidents] =
+    const [activeFacilities, activeUsers, activeResidents] =
       await Promise.all([
         tx.facility.count({
           where: { clientId, status: FacilityStatus.ACTIVE },
         }),
         tx.user.count({
           where: { facilityId: id, clientId, active: true },
-        }),
-        tx.staff.count({
-          where: { facilityId: id, facility: { clientId }, active: true },
         }),
         tx.resident.count({
           where: {
@@ -106,7 +103,6 @@ export const facilityRepository = {
       facility,
       activeFacilities,
       activeUsers,
-      activeStaff,
       activeResidents,
     };
   },
@@ -121,14 +117,6 @@ export const facilityRepository = {
     return tx.facility.updateMany({
       where: { id, clientId, status: currentStatus },
       data: { status: nextStatus },
-    });
-  },
-
-  async delete(id: string) {
-    return prisma.facility.delete({
-      where: {
-        id,
-      },
     });
   },
 };

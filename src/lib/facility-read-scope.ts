@@ -1,6 +1,6 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
-import { getCurrentUser } from "@/lib/session";
+import { getCurrentClientUser } from "@/lib/session";
 import { Role } from "@/modules/authorization/roles";
 
 export type FacilityReadScope =
@@ -15,13 +15,9 @@ export type FacilityReadScope =
     };
 
 export async function getFacilityReadScope(): Promise<FacilityReadScope> {
-  const user = await getCurrentUser();
+  const user = await getCurrentClientUser();
 
-  if (!user) {
-    redirect("/login");
-  }
-
-  if (!user.clientId || !user.role || user.role.code === Role.SUPER_ADMIN) {
+  if (user.role.code === Role.SUPER_ADMIN) {
     notFound();
   }
 

@@ -40,9 +40,13 @@ export async function seedPermissions(client: Prisma.TransactionClient) {
 
     await client.permission.upsert({
       where: { code: permission },
-      update: { description },
+      update: {
+        description,
+        name: permission,
+      },
       create: {
         code: permission,
+        name: permission,
         description,
       },
     });

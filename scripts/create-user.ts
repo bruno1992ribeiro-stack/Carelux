@@ -2,6 +2,8 @@ import "dotenv/config";
 import { prisma } from "../src/lib/prisma";
 import bcrypt from "bcrypt";
 
+import { validateUserScope } from "../src/lib/user-scope";
+
 async function main() {
   const password = await bcrypt.hash("123456", 10);
 
@@ -27,7 +29,14 @@ async function main() {
       code: "ADMIN",
       name: "Administrador",
       isSystem: true,
+      clientId: null,
     },
+  });
+
+  await validateUserScope(prisma, {
+    clientId: client.id,
+    facilityId: null,
+    roleId: role.id,
   });
 
   // Procurar ou criar User
@@ -37,6 +46,9 @@ async function main() {
     },
     update: {
       password,
+      clientId: client.id,
+      facilityId: null,
+      roleId: role.id,
     },
     create: {
       fullName: "Administrador",

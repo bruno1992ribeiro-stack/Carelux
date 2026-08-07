@@ -1,24 +1,10 @@
 import Link from "next/link";
 
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/session";
+import { getCurrentClientUser } from "@/lib/session";
 
 export default async function DashboardPage() {
-  const user = await getCurrentUser();
-
-  if (!user) {
-    return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
-        <h1 className="text-xl font-bold text-red-700">
-          Utilizador não encontrado
-        </h1>
-
-        <p className="mt-2 text-sm text-red-600">
-          Não foi possível obter os dados da sessão atual.
-        </p>
-      </div>
-    );
-  }
+  const user = await getCurrentClientUser();
 
   const clientId = user.clientId;
 

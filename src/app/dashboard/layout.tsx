@@ -1,10 +1,8 @@
 import type { ReactNode } from "react";
 
-import { redirect } from "next/navigation";
-
-import { auth } from "@/lib/auth";
 import { Sidebar } from "@/components/Sidebar";
 import { PageContainer } from "@/components/PageContainer";
+import { getCurrentClientUser } from "@/lib/session";
 import { getRoleById } from "@/services/role-service";
 
 interface DashboardLayoutProps {
@@ -14,11 +12,7 @@ interface DashboardLayoutProps {
 export default async function DashboardLayout({
   children,
 }: DashboardLayoutProps) {
-  const session = await auth();
-
-  if (!session) {
-    redirect("/login");
-  }
+  await getCurrentClientUser();
 
   const role = getRoleById("administrator");
 

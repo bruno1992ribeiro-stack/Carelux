@@ -1,10 +1,8 @@
 import type { ReactNode } from "react";
 
-import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
 
-import { getCurrentUser } from "@/lib/session";
-import { Role } from "@/modules/authorization/roles";
+import { requireGlobalSuperAdmin } from "@/lib/session";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -13,18 +11,7 @@ interface AdminLayoutProps {
 export default async function AdminLayout({ children }: AdminLayoutProps) {
   await connection();
 
-  const user = await getCurrentUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  if (
-    user.role?.code !== Role.SUPER_ADMIN ||
-    user.role.clientId !== null
-  ) {
-    notFound();
-  }
+  await requireGlobalSuperAdmin();
 
   return children;
 }

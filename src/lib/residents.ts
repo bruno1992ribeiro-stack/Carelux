@@ -1,13 +1,9 @@
 import type { Prisma } from "@prisma/client";
 
-import { getCurrentUser } from "@/lib/session";
+import { getCurrentClientUser } from "@/lib/session";
 
 export async function getResidentFilter(): Promise<Prisma.ResidentWhereInput> {
-  const user = await getCurrentUser();
-
-  if (!user) {
-    throw new Error("Utilizador não encontrado.");
-  }
+  const user = await getCurrentClientUser();
 
   /*
    * Um utilizador associado a um lar vê apenas

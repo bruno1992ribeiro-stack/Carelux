@@ -18,6 +18,7 @@ enum SubscriptionPlan {
 
 enum SubscriptionStatus {
   ACTIVE
+  INACTIVE
   SUSPENDED
   CANCELLED
 }
@@ -40,28 +41,12 @@ enum Gender {
   OTHER
 }
 
-enum StaffPosition {
-  DIRECTOR
-  NURSE
-  PHYSIOTHERAPIST
-  OCCUPATIONAL_THERAPIST
-  SPEECH_THERAPIST
-  AUDIOLOGIST
-  PSYCHOLOGIST
-  SOCIAL_WORKER
-  CAREGIVER
-  COOK
-  CLEANER
-  ADMINISTRATIVE
-  OTHER
-}
-
 //////////////////////////////////////////////////////////
 // CLIENT
 //////////////////////////////////////////////////////////
 
 model Client {
-  id String @id @default(cuid())
+  id String @id @default(uuid()) @db.Uuid
 
   name  String
   email String  @unique
@@ -77,6 +62,8 @@ model Client {
   facilities Facility[]
   users      User[]
   roles      Role[]
+
+  @@index([email])
 }
 
 //////////////////////////////////////////////////////////
@@ -84,9 +71,9 @@ model Client {
 //////////////////////////////////////////////////////////
 
 model Facility {
-  id String @id @default(cuid())
+  id String @id @default(uuid()) @db.Uuid
 
-  clientId String
+  clientId String @db.Uuid
 
   name String
 
@@ -102,13 +89,14 @@ model Facility {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  client Client @relation(fields: [clientId], references: [id])
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
-  users User[]
-  staff Staff[]
+  users         User[]
+  familyMembers FamilyMember[]
+  rooms         Room[]
+  residents     Resident[]
 
-  rooms     Room[]
-  residents Resident[]
+  @@index([clientId])
 }
 
 //////////////////////////////////////////////////////////
@@ -116,9 +104,9 @@ model Facility {
 //////////////////////////////////////////////////////////
 
 model Room {
-  id String @id @default(cuid())
+  id String @id @default(uuid()) @db.Uuid
 
-  facilityId String
+  facilityId String @db.Uuid
 
   number String
 
@@ -131,7 +119,7 @@ model Room {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  facility Facility @relation(fields: [facilityId], references: [id])
+  facility Facility @relation(fields: [facilityId], references: [id], onDelete: Restrict)
 
   beds Bed[]
 
@@ -145,9 +133,9 @@ model Room {
 //////////////////////////////////////////////////////////
 
 model Bed {
-  id String @id @default(cuid())
+  id String @id @default(uuid()) @db.Uuid
 
-  roomId String
+  roomId String @db.Uuid
 
   identifier String
 
@@ -155,7 +143,7 @@ model Bed {
 
   occupied Boolean @default(false)
 
-  room Room @relation(fields: [roomId], references: [id])
+  room Room @relation(fields: [roomId], references: [id], onDelete: Restrict)
 
   residents Resident[]
 }
@@ -165,13 +153,13 @@ model Bed {
 //////////////////////////////////////////////////////////
 
 model Resident {
-  id String @id @default(cuid())
+  id String @id @default(uuid()) @db.Uuid
 
-  facilityId String
+  facilityId String @db.Uuid
 
-  roomId String?
+  roomId String? @db.Uuid
 
-  bedId String?
+  bedId String? @db.Uuid
 
   firstName String
 
@@ -183,6 +171,8 @@ model Resident {
 
   admissionDate DateTime?
 
+  roomNumber String?
+
   status ResidentStatus @default(ACTIVE)
 
   createdAt DateTime @default(now())
@@ -190,11 +180,12 @@ model Resident {
 
   facility Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
 
-  room Room? @relation(fields: [roomId], references: [id])
+  room Room? @relation(fields: [roomId], references: [id], onDelete: SetNull)
 
-  bed Bed? @relation(fields: [bedId], references: [id])
+  bed Bed? @relation(fields: [bedId], references: [id], onDelete: SetNull)
 
-  contacts ResidentContact[]
+  contacts      ResidentContact[]
+  familyMembers FamilyMember[]
 
   @@index([facilityId])
   @@index([roomId])
@@ -202,13 +193,50 @@ model Resident {
 }
 
 //////////////////////////////////////////////////////////
+// FAMILY MEMBER
+//////////////////////////////////////////////////////////
+
+model FamilyMember {
+  id String @id @default(uuid()) @db.Uuid
+
+  facilityId String @db.Uuid
+
+  residentId String @db.Uuid
+
+  fullName String
+
+  relationship String
+
+  email String?
+
+  phone String?
+
+  isPrimaryContact Boolean @default(false)
+
+  legalRepresentative Boolean @default(false)
+
+  notes String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  facility Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+
+  resident Resident @relation(fields: [residentId], references: [id], onDelete: Cascade)
+
+  @@index([facilityId, residentId])
+  @@index([residentId, isPrimaryContact])
+}
+
+//////////////////////////////////////////////////////////
 // RESIDENT CONTACT
 //////////////////////////////////////////////////////////
 
 model ResidentContact {
-  id String @id @default(cuid())
+  id String @id @default(uuid()) @db.Uuid
 
-  residentId String
+  residentId String @db.Uuid
 
   fullName String
 
@@ -228,9 +256,52 @@ model ResidentContact {
 
   updatedAt DateTime @updatedAt
 
-  resident Resident @relation(fields: [residentId], references: [id], onDelete: Cascade)
+  resident Resident @relation(fields: [residentId], references: [id], onDelete: Restrict)
 
   @@index([residentId])
+}
+
+//////////////////////////////////////////////////////////
+// AUTH.JS
+//////////////////////////////////////////////////////////
+
+model Account {
+  id String @id @default(cuid())
+
+  userId String @db.Uuid
+
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id String @id @default(cuid())
+
+  sessionToken String   @unique
+  userId       String   @db.Uuid
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 
 //////////////////////////////////////////////////////////
@@ -238,17 +309,20 @@ model ResidentContact {
 //////////////////////////////////////////////////////////
 
 model User {
-  id String @id @default(cuid())
+  id String @id @default(uuid()) @db.Uuid
 
-  clientId String
+  clientId String? @db.Uuid
 
-  facilityId String?
+  facilityId String? @db.Uuid
 
-  roleId String?
+  roleId String @db.Uuid
 
   fullName String
 
   email String @unique
+
+  emailVerified DateTime?
+  image         String?
 
   password String
 
@@ -258,13 +332,14 @@ model User {
 
   updatedAt DateTime @updatedAt
 
-  client Client @relation(fields: [clientId], references: [id])
+  client Client? @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
-  facility Facility? @relation(fields: [facilityId], references: [id])
+  facility Facility? @relation(fields: [facilityId], references: [id], onDelete: Cascade)
 
-  role Role? @relation(fields: [roleId], references: [id])
+  role Role @relation(fields: [roleId], references: [id], onDelete: Restrict)
 
-  staff Staff?
+  accounts Account[]
+  sessions Session[]
 
   @@index([clientId])
   @@index([facilityId])
@@ -272,61 +347,13 @@ model User {
 }
 
 //////////////////////////////////////////////////////////
-// STAFF
-//////////////////////////////////////////////////////////
-
-model Staff {
-  id String @id @default(cuid())
-
-  userId String @unique
-
-  facilityId String
-
-  employeeNumber String?
-
-  firstName String
-
-  lastName String
-
-  birthDate DateTime?
-
-  gender Gender?
-
-  phone String?
-
-  nif String?
-
-  niss String?
-
-  position StaffPosition
-
-  admissionDate DateTime?
-
-  terminationDate DateTime?
-
-  active Boolean @default(true)
-
-  notes String?
-
-  createdAt DateTime @default(now())
-
-  updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  facility Facility @relation(fields: [facilityId], references: [id])
-
-  @@index([facilityId])
-}
-
-//////////////////////////////////////////////////////////
 // ROLES
 //////////////////////////////////////////////////////////
 
 model Role {
-  id String @id @default(cuid())
+  id String @id @default(uuid()) @db.Uuid
 
-  clientId String?
+  clientId String? @db.Uuid
 
   code String @unique
 
@@ -340,11 +367,13 @@ model Role {
 
   updatedAt DateTime @updatedAt
 
-  client Client? @relation(fields: [clientId], references: [id])
+  client Client? @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   users User[]
 
   permissions RolePermission[]
+
+  @@index([clientId])
 }
 
 //////////////////////////////////////////////////////////
@@ -352,13 +381,16 @@ model Role {
 //////////////////////////////////////////////////////////
 
 model Permission {
-  id String @id @default(cuid())
+  id String @id @default(uuid()) @db.Uuid
 
   code String @unique
 
-  description String
+  name String
+
+  description String?
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   roles RolePermission[]
 }
@@ -368,15 +400,19 @@ model Permission {
 //////////////////////////////////////////////////////////
 
 model RolePermission {
-  id String @id @default(cuid())
+  id String @id @default(uuid()) @db.Uuid
 
-  roleId String
+  roleId String @db.Uuid
 
-  permissionId String
+  permissionId String @db.Uuid
+
+  createdAt DateTime @default(now())
 
   role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
   @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
 }

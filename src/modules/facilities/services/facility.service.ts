@@ -129,14 +129,6 @@ export const facilityService = {
         );
       }
 
-      if (context.activeStaff > 0) {
-        throw new AppError(
-          "ACTIVE_STAFF_ASSIGNED",
-          "Existem funcionários ativos associados a esta unidade.",
-          409
-        );
-      }
-
       if (context.activeResidents > 0) {
         throw new AppError(
           "ACTIVE_RESIDENTS_ASSIGNED",
@@ -204,24 +196,4 @@ export const facilityService = {
     });
   },
 
-  async delete(
-    id: string,
-    clientId: string
-  ) {
-    const existingFacility =
-      await facilityRepository.findById(
-        id,
-        clientId
-      );
-
-    if (!existingFacility) {
-      throw new AppError(
-        "FACILITY_NOT_FOUND",
-        "Unidade não encontrada.",
-        404
-      );
-    }
-
-    return facilityRepository.delete(id);
-  },
 };

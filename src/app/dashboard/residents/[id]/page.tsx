@@ -2,8 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AppError } from "@/lib/errors/app-error";
-import { getCurrentUser } from "@/lib/session";
-import { DeleteResidentButton } from "@/modules/residents/components/delete-resident-button";
+import { getCurrentClientUser } from "@/lib/session";
 import { residentService } from "@/modules/residents/services/resident.service";
 
 const dateFormatter = new Intl.DateTimeFormat("pt-PT");
@@ -31,11 +30,7 @@ export default async function ResidentDetailsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const user = await getCurrentUser();
-
-  if (!user) {
-    notFound();
-  }
+  const user = await getCurrentClientUser();
 
   const scope = { clientId: user.clientId, facilityId: user.facilityId };
   let resident;
@@ -86,9 +81,6 @@ export default async function ResidentDetailsPage({
           >
             Editar
           </Link>
-          <div className="col-span-2">
-            <DeleteResidentButton residentId={resident.id} redirectAfterDelete />
-          </div>
         </div>
       </div>
 
