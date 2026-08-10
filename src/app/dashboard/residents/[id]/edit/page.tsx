@@ -1,12 +1,10 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
 import { FacilityStatus } from "@prisma/client";
 
-import { AppError } from "@/lib/errors/app-error";
 import { prisma } from "@/lib/prisma";
-import { getCurrentClientUser } from "@/lib/session";
+import { Permission } from "@/modules/authorization/permissions";
 import { ResidentForm } from "@/modules/residents/components/resident-form";
-import { residentService } from "@/modules/residents/services/resident.service";
+import { getResidentWorkspace } from "@/modules/residents/server/get-resident-workspace";
+import { requireResidentPermission } from "@/modules/residents/server/resident-authorization";
 
 export const dynamic = "force-dynamic";
 
@@ -20,39 +18,31 @@ export default async function EditResidentPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const user = await getCurrentClientUser();
+  const [resident, scope] = await Promise.all([
+    getResidentWorkspace(id),
+    requireResidentPermission(Permission.EDIT_RESIDENT),
+  ]);
+  const facilityId = scope.type === "facility" ? scope.facilityId : undefined;
 
-  const scope = { clientId: user.clientId, facilityId: user.facilityId };
-  let resident;
-
-  try {
-    resident = await residentService.getById(id, scope);
-  } catch (error) {
-    if (error instanceof AppError && error.status === 404) {
-      notFound();
-    }
-    throw error;
-  }
-
-  const facilityFilter = user.facilityId
+  const facilityFilter = facilityId
     ? {
-        clientId: user.clientId,
-        id: user.facilityId,
+        clientId: scope.clientId,
+        id: facilityId,
         OR: [
           { status: FacilityStatus.ACTIVE },
           { id: resident.facilityId },
         ],
       }
     : {
-        clientId: user.clientId,
+        clientId: scope.clientId,
         OR: [
           { status: FacilityStatus.ACTIVE },
           { id: resident.facilityId },
         ],
       };
   const roomFilter = {
-    facility: { clientId: user.clientId },
-    ...(user.facilityId ? { facilityId: user.facilityId } : {}),
+    facility: { clientId: scope.clientId },
+    ...(facilityId ? { facilityId } : {}),
     OR: [
       { facility: { status: FacilityStatus.ACTIVE } },
       ...(resident.roomId ? [{ id: resident.roomId }] : []),
@@ -98,32 +88,17 @@ export default async function EditResidentPage({
   ]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-emerald-600">
-            Gestão residencial
-          </p>
-          <h1 className="mt-1 text-3xl font-bold text-slate-900">Editar utente</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            {resident.firstName} {resident.lastName}
-          </p>
-        </div>
-        <Link
-          href={`/dashboard/residents/${resident.id}`}
-          className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-        >
-          Voltar
-        </Link>
-      </div>
-
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+    <section aria-labelledby="edit-resident-title" className="flex flex-col gap-4">
+      <h2 id="edit-resident-title" className="text-lg font-semibold text-foreground">
+        Editar dados do utente
+      </h2>
+      <div className="card-warm p-5 sm:p-7">
         <ResidentForm
           mode="edit"
           facilities={facilities}
           rooms={rooms}
           beds={beds}
-          facilityLocked={Boolean(user.facilityId)}
+          facilityLocked={Boolean(facilityId)}
           resident={{
             id: resident.id,
             facilityId: resident.facilityId,
@@ -138,6 +113,6 @@ export default async function EditResidentPage({
           }}
         />
       </div>
-    </div>
+    </section>
   );
 }

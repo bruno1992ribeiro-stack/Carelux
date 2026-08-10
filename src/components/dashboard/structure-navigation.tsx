@@ -10,8 +10,7 @@ import { cn } from "@/lib/utils";
 export type StructureSection =
   | "facilities"
   | "rooms"
-  | "beds"
-  | "residents";
+  | "beds";
 
 type SearchParamValue = string | string[] | undefined;
 
@@ -32,12 +31,6 @@ export const structureSections: Array<{
   value: Exclude<StructureSection, "facilities">;
 }> = [
   {
-    href: "/dashboard/residents",
-    icon: Users,
-    label: "Utentes",
-    value: "residents",
-  },
-  {
     href: "/dashboard/rooms",
     icon: DoorOpen,
     label: "Quartos",
@@ -51,6 +44,13 @@ export const structureSections: Array<{
   },
 ];
 
+const residentSection = {
+  href: "/dashboard/residents",
+  icon: Users,
+  label: "Utentes",
+  value: "residents",
+} as const;
+
 export function StructureNavigation({
   activeSection,
   basePath,
@@ -60,6 +60,10 @@ export function StructureNavigation({
   selectedFacilityId,
   variant = "compact",
 }: StructureNavigationProps) {
+  const visibleSections =
+    variant === "dashboard"
+      ? [residentSection, ...structureSections]
+      : structureSections;
   const facilityLabel = facilityCount === 1 ? "Unidade" : "Unidades";
   const facilityHref = selectedFacilityId
     ? `/dashboard/facilities?facilityId=${encodeURIComponent(selectedFacilityId)}`
@@ -103,7 +107,7 @@ export function StructureNavigation({
               : "flex min-w-max gap-2"
           )}
         >
-          {structureSections.map((section) => {
+          {visibleSections.map((section) => {
             const active = section.value === activeSection;
             const Icon = section.icon;
             const href = selectedFacilityId

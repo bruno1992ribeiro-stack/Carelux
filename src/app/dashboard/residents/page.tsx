@@ -1,8 +1,8 @@
 import Link from "next/link";
 
-import { StructureNavigation } from "@/components/dashboard/structure-navigation";
-import { getFacilityReadScope } from "@/lib/facility-read-scope";
+import { FacilityListFilter } from "@/components/dashboard/facility-list-filter";
 import { facilityService } from "@/modules/facilities/services/facility.service";
+import { getResidentListAuthorization } from "@/modules/residents/server/resident-authorization";
 import { residentService } from "@/modules/residents/services/resident.service";
 
 function getStatusLabel(status: string) {
@@ -36,7 +36,7 @@ export default async function ResidentsPage({
 }: {
   searchParams: Promise<ResidentsSearchParams>;
 }) {
-  const scope = await getFacilityReadScope();
+  const { canCreate, canEdit, scope } = await getResidentListAuthorization();
   const resolvedSearchParams = await searchParams;
   const authorizedFacilities = await facilityService.findAll(
     scope.clientId,
@@ -75,19 +75,16 @@ export default async function ResidentsPage({
             Consulte e gira os utentes registados nas suas unidades.
           </p>
         </div>
-        <Link
-          href="/dashboard/residents/new"
-          className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 sm:w-auto"
-        >
-          Novo utente
-        </Link>
+        {canCreate ? (
+          <Link href="/dashboard/residents/new" className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 sm:w-auto">
+            Novo utente
+          </Link>
+        ) : null}
       </header>
 
-      <StructureNavigation
-        activeSection="residents"
+      <FacilityListFilter
         basePath="/dashboard/residents"
         facilities={authorizedFacilities}
-        facilityCount={authorizedFacilities.length}
         selectedFacilityId={selectedFacility?.id ?? null}
         searchParams={resolvedSearchParams}
       />
@@ -119,12 +116,11 @@ export default async function ResidentsPage({
               ? `Não existem utentes registados em ${selectedFacility.name}.`
               : "Ainda não existem utentes registados."}
           </p>
-          <Link
-            href="/dashboard/residents/new"
-            className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
-          >
-            Criar primeiro utente
-          </Link>
+          {canCreate ? (
+            <Link href="/dashboard/residents/new" className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700">
+              Criar primeiro utente
+            </Link>
+          ) : null}
         </section>
       ) : (
         <>
@@ -171,19 +167,18 @@ export default async function ResidentsPage({
                   </div>
                 </dl>
 
-                <div className="mt-5 grid grid-cols-2 gap-2">
+                <div className={`mt-5 grid gap-2 ${canEdit ? "grid-cols-2" : "grid-cols-1"}`}>
                   <Link
                     href={`/dashboard/residents/${resident.id}`}
-                    className="inline-flex min-h-10 items-center justify-center rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                    className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
                   >
                     Ver
                   </Link>
-                  <Link
-                    href={`/dashboard/residents/${resident.id}/edit`}
-                    className="inline-flex min-h-10 items-center justify-center rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-                  >
-                    Editar
-                  </Link>
+                  {canEdit ? (
+                    <Link href={`/dashboard/residents/${resident.id}/edit`} className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                      Editar
+                    </Link>
+                  ) : null}
                 </div>
               </article>
             ))}
@@ -231,9 +226,11 @@ export default async function ResidentsPage({
                         <Link href={`/dashboard/residents/${resident.id}`} className="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-slate-300 px-2.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100">
                           Ver
                         </Link>
-                        <Link href={`/dashboard/residents/${resident.id}/edit`} className="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-slate-300 px-2.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100">
-                          Editar
-                        </Link>
+                        {canEdit ? (
+                          <Link href={`/dashboard/residents/${resident.id}/edit`} className="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-slate-300 px-2.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100">
+                            Editar
+                          </Link>
+                        ) : null}
                       </div>
                     </td>
                     </tr>

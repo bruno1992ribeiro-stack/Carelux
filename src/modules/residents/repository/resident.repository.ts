@@ -12,6 +12,22 @@ import type {
 type ResidentTransaction = Prisma.TransactionClient;
 type ResidentDb = typeof prisma | ResidentTransaction;
 
+const residentDetailsSelect = {
+  id: true,
+  facilityId: true,
+  roomId: true,
+  bedId: true,
+  firstName: true,
+  lastName: true,
+  birthDate: true,
+  gender: true,
+  admissionDate: true,
+  status: true,
+  facility: { select: { name: true } },
+  room: { select: { number: true } },
+  bed: { select: { identifier: true } },
+} satisfies Prisma.ResidentSelect;
+
 function getScopeWhere(scope: ResidentScope): Prisma.ResidentWhereInput {
   return {
     facility: {
@@ -80,10 +96,31 @@ export const residentRepository = {
         id,
         ...getScopeWhere(scope),
       },
-      include: {
-        facility: true,
-        room: true,
-        bed: true,
+      select: residentDetailsSelect,
+    });
+  },
+
+  async findSummaryById(
+    id: string,
+    scope: ResidentScope,
+    db: ResidentDb = prisma
+  ) {
+    return db.resident.findFirst({
+      where: { id, ...getScopeWhere(scope) },
+      select: {
+        createdAt: true,
+        updatedAt: true,
+        contacts: {
+          select: {
+            id: true,
+            fullName: true,
+            relationship: true,
+            phone: true,
+            email: true,
+            isPrimary: true,
+          },
+          orderBy: [{ isPrimary: "desc" }, { fullName: "asc" }],
+        },
       },
     });
   },

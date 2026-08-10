@@ -14,9 +14,9 @@ export type FacilityReadScope =
       facilityId: string;
     };
 
-export async function getFacilityReadScope(): Promise<FacilityReadScope> {
-  const user = await getCurrentClientUser();
-
+export function getFacilityReadScopeForUser(
+  user: Awaited<ReturnType<typeof getCurrentClientUser>>,
+): FacilityReadScope {
   if (user.role.code === Role.SUPER_ADMIN) {
     notFound();
   }
@@ -37,4 +37,8 @@ export async function getFacilityReadScope(): Promise<FacilityReadScope> {
     clientId: user.clientId,
     facilityId: user.facilityId,
   };
+}
+
+export async function getFacilityReadScope(): Promise<FacilityReadScope> {
+  return getFacilityReadScopeForUser(await getCurrentClientUser());
 }

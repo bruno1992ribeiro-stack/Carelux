@@ -5,8 +5,10 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { AppError } from "@/lib/errors/app-error";
-import { getCurrentUser } from "@/lib/session";
-import { isGlobalSuperAdmin } from "@/lib/user-scope";
+import { getFacilityReadScopeForUser } from "@/lib/facility-read-scope";
+import { requirePermission } from "@/lib/permissions";
+import { getCurrentClientUser } from "@/lib/session";
+import { Permission } from "@/modules/authorization/permissions";
 
 import { residentService } from "./services/resident.service";
 import {
@@ -65,34 +67,14 @@ function getErrorState(error: unknown): ActionState {
   };
 }
 
-async function getAuthenticatedScope() {
-  const user = await getCurrentUser();
-
-  if (!user) {
-    throw new AppError(
-      "UNAUTHENTICATED",
-      "A sessão terminou. Inicie sessão novamente.",
-      401
-    );
-  }
-
-  if (
-    isGlobalSuperAdmin(user) ||
-    !user.clientId ||
-    !user.client ||
-    !user.role ||
-    (user.role.clientId !== null && user.role.clientId !== user.clientId)
-  ) {
-    throw new AppError(
-      "FORBIDDEN",
-      "Não tem acesso a operações de utentes deste cliente.",
-      403,
-    );
-  }
+async function getAuthenticatedScope(permission: Permission) {
+  const user = await getCurrentClientUser();
+  requirePermission(user, permission);
+  const scope = getFacilityReadScopeForUser(user);
 
   return {
-    clientId: user.clientId,
-    facilityId: user.facilityId,
+    clientId: scope.clientId,
+    facilityId: scope.type === "facility" ? scope.facilityId : undefined,
   };
 }
 
@@ -139,7 +121,7 @@ export async function createResident(
   formData: FormData
 ): Promise<ActionState> {
   try {
-    const scope = await getAuthenticatedScope();
+    const scope = await getAuthenticatedScope(Permission.CREATE_RESIDENT);
     const validated = residentSchema.parse(getCreateInput(formData));
 
     await residentService.create(scope, validated);
@@ -157,7 +139,7 @@ export async function updateResident(
   formData: FormData
 ): Promise<ActionState> {
   try {
-    const scope = await getAuthenticatedScope();
+    const scope = await getAuthenticatedScope(Permission.EDIT_RESIDENT);
     const validated = updateResidentSchema.parse(getUpdateInput(formData));
 
     await residentService.update(id, scope, validated);

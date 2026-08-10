@@ -2,25 +2,27 @@ import Link from "next/link";
 import { FacilityStatus } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
-import { getCurrentClientUser } from "@/lib/session";
+import { Permission } from "@/modules/authorization/permissions";
 import { ResidentForm } from "@/modules/residents/components/resident-form";
+import { requireResidentPermission } from "@/modules/residents/server/resident-authorization";
 
 export default async function NewResidentPage() {
-  const user = await getCurrentClientUser();
+  const scope = await requireResidentPermission(Permission.CREATE_RESIDENT);
+  const facilityId = scope.type === "facility" ? scope.facilityId : undefined;
 
-  const facilityFilter = user.facilityId
+  const facilityFilter = facilityId
     ? {
-        clientId: user.clientId,
-        id: user.facilityId,
+        clientId: scope.clientId,
+        id: facilityId,
         status: FacilityStatus.ACTIVE,
       }
-    : { clientId: user.clientId, status: FacilityStatus.ACTIVE };
+    : { clientId: scope.clientId, status: FacilityStatus.ACTIVE };
   const roomFilter = {
     facility: {
-      clientId: user.clientId,
+      clientId: scope.clientId,
       status: FacilityStatus.ACTIVE,
     },
-    ...(user.facilityId ? { facilityId: user.facilityId } : {}),
+    ...(facilityId ? { facilityId } : {}),
   };
 
   const [facilities, rooms, beds] = await Promise.all([
@@ -78,7 +80,7 @@ export default async function NewResidentPage() {
             facilities={facilities}
             rooms={rooms}
             beds={beds}
-            facilityLocked={Boolean(user.facilityId)}
+            facilityLocked={Boolean(facilityId)}
           />
         ) : (
           <div className="p-6 text-center text-sm text-slate-500">

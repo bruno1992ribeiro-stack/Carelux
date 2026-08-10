@@ -16,6 +16,7 @@ import {
   Pill,
   Settings,
   Sparkles,
+  Users,
   UserRoundCog,
   UserRoundSearch,
   WalletCards,
@@ -34,6 +35,7 @@ type NavigationItem = {
   href: string;
   icon: LucideIcon;
   mobilePrimary?: boolean;
+  desktopOnly?: boolean;
   activeHrefs?: readonly string[];
   mobileActiveHrefs?: readonly string[];
   exact?: boolean;
@@ -56,8 +58,15 @@ const navigation: NavigationItem[] = [
     activeHrefs: [
       "/dashboard/rooms",
       "/dashboard/beds",
-      "/dashboard/residents",
     ],
+    mobileActiveHrefs: ["/dashboard/residents"],
+    group: "Principal",
+  },
+  {
+    label: "Utentes",
+    href: "/dashboard/residents",
+    icon: Users,
+    desktopOnly: true,
     group: "Principal",
   },
   {
@@ -151,8 +160,11 @@ const navigationGroups: NavigationItem["group"][] = [
   "Administração",
 ];
 
-const primaryNavigation = navigation.filter((item) => item.mobilePrimary);
-const secondaryNavigation = navigation.filter((item) => !item.mobilePrimary);
+const mobileNavigation = navigation.filter((item) => !item.desktopOnly);
+const primaryNavigation = mobileNavigation.filter((item) => item.mobilePrimary);
+const secondaryNavigation = mobileNavigation.filter(
+  (item) => !item.mobilePrimary,
+);
 
 function isItemActive(pathname: string, href: string) {
   if (href === "/dashboard") {

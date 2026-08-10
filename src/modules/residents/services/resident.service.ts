@@ -169,6 +169,20 @@ export const residentService = {
     return resident;
   },
 
+  async getSummaryById(id: string, scope: ResidentScope) {
+    const resident = await residentRepository.findSummaryById(id, scope);
+
+    if (!resident) {
+      throw new AppError(
+        "RESIDENT_NOT_FOUND",
+        "Utente não encontrado.",
+        404
+      );
+    }
+
+    return resident;
+  },
+
   async create(scope: ResidentScope, data: ResidentInput) {
     const validated = normalizeLocation(residentSchema.parse(data));
 
