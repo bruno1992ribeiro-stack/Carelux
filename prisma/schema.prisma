@@ -41,6 +41,44 @@ enum Gender {
   OTHER
 }
 
+enum ClinicalItemStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum AllergyType {
+  MEDICATION
+  FOOD
+  ENVIRONMENTAL
+  CONTACT
+  OTHER
+}
+
+enum AllergySeverity {
+  MILD
+  MODERATE
+  SEVERE
+  LIFE_THREATENING
+}
+
+enum ClinicalRecordCategory {
+  MEDICAL
+  NURSING
+  PHYSIOTHERAPY
+  OCCUPATIONAL_THERAPY
+  SPEECH_THERAPY
+  PSYCHOLOGY
+  NUTRITION
+  SOCIAL_WORK
+  AUDIOLOGY
+  OTHER
+}
+
+enum ClinicalRecordStatus {
+  ACTIVE
+  VOIDED
+}
+
 //////////////////////////////////////////////////////////
 // CLIENT
 //////////////////////////////////////////////////////////
@@ -95,6 +133,7 @@ model Facility {
   familyMembers FamilyMember[]
   rooms         Room[]
   residents     Resident[]
+  clinicalRecords ResidentClinicalRecord[]
 
   @@index([clientId])
 }
@@ -186,6 +225,9 @@ model Resident {
 
   contacts      ResidentContact[]
   familyMembers FamilyMember[]
+  diagnoses     ResidentDiagnosis[]
+  allergies     ResidentAllergy[]
+  clinicalRecords ResidentClinicalRecord[]
 
   @@index([facilityId])
   @@index([roomId])
@@ -259,6 +301,118 @@ model ResidentContact {
   resident Resident @relation(fields: [residentId], references: [id], onDelete: Restrict)
 
   @@index([residentId])
+}
+
+//////////////////////////////////////////////////////////
+// RESIDENT DIAGNOSIS
+//////////////////////////////////////////////////////////
+
+model ResidentDiagnosis {
+  id String @id @default(uuid()) @db.Uuid
+
+  residentId String @db.Uuid
+  createdById String @db.Uuid
+
+  name String
+  description String?
+  diagnosedAt DateTime?
+  status ClinicalItemStatus @default(ACTIVE)
+  observations String?
+
+  deactivatedAt DateTime?
+  deactivatedById String? @db.Uuid
+  supersedesId String? @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  resident Resident @relation(fields: [residentId], references: [id], onDelete: Restrict)
+  createdBy User @relation("DiagnosisCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  deactivatedBy User? @relation("DiagnosisDeactivatedBy", fields: [deactivatedById], references: [id], onDelete: Restrict)
+
+  supersedes ResidentDiagnosis? @relation("DiagnosisCorrections", fields: [supersedesId], references: [id], onDelete: Restrict)
+  corrections ResidentDiagnosis[] @relation("DiagnosisCorrections")
+
+  @@index([residentId, status])
+  @@index([createdById])
+  @@index([supersedesId])
+}
+
+//////////////////////////////////////////////////////////
+// RESIDENT ALLERGY
+//////////////////////////////////////////////////////////
+
+model ResidentAllergy {
+  id String @id @default(uuid()) @db.Uuid
+
+  residentId String @db.Uuid
+  createdById String @db.Uuid
+
+  allergen String
+  type AllergyType?
+  reaction String
+  severity AllergySeverity
+  observations String?
+  status ClinicalItemStatus @default(ACTIVE)
+
+  deactivatedAt DateTime?
+  deactivatedById String? @db.Uuid
+  supersedesId String? @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  resident Resident @relation(fields: [residentId], references: [id], onDelete: Restrict)
+  createdBy User @relation("AllergyCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  deactivatedBy User? @relation("AllergyDeactivatedBy", fields: [deactivatedById], references: [id], onDelete: Restrict)
+
+  supersedes ResidentAllergy? @relation("AllergyCorrections", fields: [supersedesId], references: [id], onDelete: Restrict)
+  corrections ResidentAllergy[] @relation("AllergyCorrections")
+
+  @@index([residentId, status])
+  @@index([createdById])
+  @@index([supersedesId])
+}
+
+//////////////////////////////////////////////////////////
+// RESIDENT CLINICAL RECORD
+//////////////////////////////////////////////////////////
+
+model ResidentClinicalRecord {
+  id String @id @default(uuid()) @db.Uuid
+
+  residentId String @db.Uuid
+  facilityId String @db.Uuid
+  authorUserId String @db.Uuid
+
+  category ClinicalRecordCategory
+  title String
+  content String
+  clinicalAt DateTime
+
+  status ClinicalRecordStatus @default(ACTIVE)
+
+  voidedAt DateTime?
+  voidedById String? @db.Uuid
+  voidReason String?
+  amendsRecordId String? @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  resident Resident @relation(fields: [residentId], references: [id], onDelete: Restrict)
+  facility Facility @relation(fields: [facilityId], references: [id], onDelete: Restrict)
+  authorUser User @relation("ClinicalRecordAuthor", fields: [authorUserId], references: [id], onDelete: Restrict)
+  voidedBy User? @relation("ClinicalRecordVoidedBy", fields: [voidedById], references: [id], onDelete: Restrict)
+
+  amendsRecord ResidentClinicalRecord? @relation("ClinicalRecordAmendments", fields: [amendsRecordId], references: [id], onDelete: Restrict)
+  amendments ResidentClinicalRecord[] @relation("ClinicalRecordAmendments")
+
+  @@index([residentId, clinicalAt])
+  @@index([facilityId, clinicalAt])
+  @@index([authorUserId])
+  @@index([amendsRecordId])
+  @@index([status])
 }
 
 //////////////////////////////////////////////////////////
@@ -340,6 +494,12 @@ model User {
 
   accounts Account[]
   sessions Session[]
+  diagnosesCreated ResidentDiagnosis[] @relation("DiagnosisCreatedBy")
+  diagnosesDeactivated ResidentDiagnosis[] @relation("DiagnosisDeactivatedBy")
+  allergiesCreated ResidentAllergy[] @relation("AllergyCreatedBy")
+  allergiesDeactivated ResidentAllergy[] @relation("AllergyDeactivatedBy")
+  clinicalRecordsAuthored ResidentClinicalRecord[] @relation("ClinicalRecordAuthor")
+  clinicalRecordsVoided ResidentClinicalRecord[] @relation("ClinicalRecordVoidedBy")
 
   @@index([clientId])
   @@index([facilityId])

@@ -12,7 +12,9 @@ const adminPermissions: readonly Permission[] = [
   Permission.ARCHIVE_RESIDENT,
   Permission.RESTORE_RESIDENT,
   Permission.VIEW_CLINICAL_RECORD,
+  Permission.EDIT_CLINICAL_RECORD,
   Permission.EDIT_PATHOLOGY,
+  Permission.EDIT_ALLERGY,
   Permission.VIEW_MEDICATION,
   Permission.EDIT_MEDICATION,
   Permission.VIEW_APPOINTMENT,
@@ -47,7 +49,9 @@ export const rolePermissionMatrix: Record<Role, readonly Permission[]> = {
     Permission.ARCHIVE_RESIDENT,
     Permission.RESTORE_RESIDENT,
     Permission.VIEW_CLINICAL_RECORD,
+    Permission.EDIT_CLINICAL_RECORD,
     Permission.EDIT_PATHOLOGY,
+    Permission.EDIT_ALLERGY,
     Permission.VIEW_MEDICATION,
     Permission.EDIT_MEDICATION,
     Permission.VIEW_APPOINTMENT,
@@ -74,7 +78,9 @@ export const rolePermissionMatrix: Record<Role, readonly Permission[]> = {
   [Role.DOCTOR]: [
     Permission.VIEW_RESIDENT,
     Permission.VIEW_CLINICAL_RECORD,
+    Permission.EDIT_CLINICAL_RECORD,
     Permission.EDIT_PATHOLOGY,
+    Permission.EDIT_ALLERGY,
     Permission.VIEW_MEDICATION,
     Permission.EDIT_MEDICATION,
     Permission.VIEW_APPOINTMENT,
@@ -83,7 +89,9 @@ export const rolePermissionMatrix: Record<Role, readonly Permission[]> = {
   [Role.NURSE]: [
     Permission.VIEW_RESIDENT,
     Permission.VIEW_CLINICAL_RECORD,
+    Permission.EDIT_CLINICAL_RECORD,
     Permission.EDIT_PATHOLOGY,
+    Permission.EDIT_ALLERGY,
     Permission.VIEW_MEDICATION,
     Permission.EDIT_MEDICATION,
     Permission.VIEW_APPOINTMENT,
@@ -92,36 +100,42 @@ export const rolePermissionMatrix: Record<Role, readonly Permission[]> = {
   [Role.PHYSIOTHERAPIST]: [
     Permission.VIEW_RESIDENT,
     Permission.VIEW_CLINICAL_RECORD,
+    Permission.EDIT_CLINICAL_RECORD,
     Permission.VIEW_APPOINTMENT,
     Permission.EDIT_APPOINTMENT,
   ],
   [Role.OCCUPATIONAL_THERAPIST]: [
     Permission.VIEW_RESIDENT,
     Permission.VIEW_CLINICAL_RECORD,
+    Permission.EDIT_CLINICAL_RECORD,
     Permission.VIEW_APPOINTMENT,
     Permission.EDIT_APPOINTMENT,
   ],
   [Role.SPEECH_THERAPIST]: [
     Permission.VIEW_RESIDENT,
     Permission.VIEW_CLINICAL_RECORD,
+    Permission.EDIT_CLINICAL_RECORD,
     Permission.VIEW_APPOINTMENT,
     Permission.EDIT_APPOINTMENT,
   ],
   [Role.PSYCHOLOGIST]: [
     Permission.VIEW_RESIDENT,
     Permission.VIEW_CLINICAL_RECORD,
+    Permission.EDIT_CLINICAL_RECORD,
     Permission.VIEW_APPOINTMENT,
     Permission.EDIT_APPOINTMENT,
   ],
   [Role.NUTRITIONIST]: [
     Permission.VIEW_RESIDENT,
     Permission.VIEW_CLINICAL_RECORD,
+    Permission.EDIT_CLINICAL_RECORD,
     Permission.VIEW_APPOINTMENT,
     Permission.EDIT_APPOINTMENT,
   ],
   [Role.SOCIAL_WORKER]: [
     Permission.VIEW_RESIDENT,
     Permission.VIEW_CLINICAL_RECORD,
+    Permission.EDIT_CLINICAL_RECORD,
     Permission.VIEW_APPOINTMENT,
   ],
   [Role.CAREGIVER]: [
@@ -163,16 +177,12 @@ export async function seedRolePermissions(client: Prisma.TransactionClient) {
       throw new Error(`Role canónica não encontrada: ${role}`);
     }
 
-    const expectedPermissionIds: string[] = [];
-
     for (const permission of rolePermissionMatrix[role]) {
       const permissionId = permissionsByCode.get(permission);
 
       if (!permissionId) {
         throw new Error(`Permissão canónica não encontrada: ${permission}`);
       }
-
-      expectedPermissionIds.push(permissionId);
 
       await client.rolePermission.upsert({
         where: {
@@ -189,14 +199,6 @@ export async function seedRolePermissions(client: Prisma.TransactionClient) {
       });
     }
 
-    await client.rolePermission.deleteMany({
-      where: {
-        roleId,
-        permissionId: {
-          notIn: expectedPermissionIds,
-        },
-      },
-    });
   }
 
   console.log("Permissões das Roles sincronizadas.");
