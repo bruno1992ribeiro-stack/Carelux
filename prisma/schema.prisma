@@ -94,6 +94,46 @@ enum AppointmentRevisionType {
   STATUS_CORRECTED
 }
 
+enum MedicationStatus {
+  ACTIVE
+  SUSPENDED
+  DISCONTINUED
+}
+
+enum MedicationScheduleMode {
+  DAILY_FREQUENCY
+  FIXED_TIMES
+  CARE_MOMENTS
+  INTERVAL
+  PRN
+}
+
+enum MedicationCareMoment {
+  BREAKFAST
+  LUNCH
+  DINNER
+  BEDTIME
+}
+
+enum MedicationWeekday {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum MedicationRevisionType {
+  EDITED
+  SCHEDULE_CHANGED
+  SUSPENDED
+  REACTIVATED
+  DISCONTINUED
+  STATUS_CORRECTED
+}
+
 //////////////////////////////////////////////////////////
 // CLIENT
 //////////////////////////////////////////////////////////
@@ -144,12 +184,14 @@ model Facility {
 
   client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
-  users         User[]
-  familyMembers FamilyMember[]
-  rooms         Room[]
-  residents     Resident[]
-  clinicalRecords ResidentClinicalRecord[]
-  appointments    ResidentAppointment[]
+  users                        User[]
+  familyMembers                FamilyMember[]
+  rooms                        Room[]
+  residents                    Resident[]
+  clinicalRecords              ResidentClinicalRecord[]
+  appointments                 ResidentAppointment[]
+  medications                  ResidentMedication[]
+  medicationRevisionsChangedAt ResidentMedicationRevision[] @relation("MedicationRevisionChangedAtFacility")
 
   @@index([clientId])
 }
@@ -239,12 +281,13 @@ model Resident {
 
   bed Bed? @relation(fields: [bedId], references: [id], onDelete: SetNull)
 
-  contacts      ResidentContact[]
-  familyMembers FamilyMember[]
-  diagnoses     ResidentDiagnosis[]
-  allergies     ResidentAllergy[]
+  contacts        ResidentContact[]
+  familyMembers   FamilyMember[]
+  diagnoses       ResidentDiagnosis[]
+  allergies       ResidentAllergy[]
   clinicalRecords ResidentClinicalRecord[]
   appointments    ResidentAppointment[]
+  medications     ResidentMedication[]
 
   @@index([facilityId])
   @@index([roomId])
@@ -327,27 +370,27 @@ model ResidentContact {
 model ResidentDiagnosis {
   id String @id @default(uuid()) @db.Uuid
 
-  residentId String @db.Uuid
+  residentId  String @db.Uuid
   createdById String @db.Uuid
 
-  name String
-  description String?
-  diagnosedAt DateTime?
-  status ClinicalItemStatus @default(ACTIVE)
+  name         String
+  description  String?
+  diagnosedAt  DateTime?
+  status       ClinicalItemStatus @default(ACTIVE)
   observations String?
 
-  deactivatedAt DateTime?
-  deactivatedById String? @db.Uuid
-  supersedesId String? @db.Uuid
+  deactivatedAt   DateTime?
+  deactivatedById String?   @db.Uuid
+  supersedesId    String?   @db.Uuid
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  resident Resident @relation(fields: [residentId], references: [id], onDelete: Restrict)
-  createdBy User @relation("DiagnosisCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
-  deactivatedBy User? @relation("DiagnosisDeactivatedBy", fields: [deactivatedById], references: [id], onDelete: Restrict)
+  resident      Resident @relation(fields: [residentId], references: [id], onDelete: Restrict)
+  createdBy     User     @relation("DiagnosisCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  deactivatedBy User?    @relation("DiagnosisDeactivatedBy", fields: [deactivatedById], references: [id], onDelete: Restrict)
 
-  supersedes ResidentDiagnosis? @relation("DiagnosisCorrections", fields: [supersedesId], references: [id], onDelete: Restrict)
+  supersedes  ResidentDiagnosis?  @relation("DiagnosisCorrections", fields: [supersedesId], references: [id], onDelete: Restrict)
   corrections ResidentDiagnosis[] @relation("DiagnosisCorrections")
 
   @@index([residentId, status])
@@ -362,28 +405,28 @@ model ResidentDiagnosis {
 model ResidentAllergy {
   id String @id @default(uuid()) @db.Uuid
 
-  residentId String @db.Uuid
+  residentId  String @db.Uuid
   createdById String @db.Uuid
 
-  allergen String
-  type AllergyType?
-  reaction String
-  severity AllergySeverity
+  allergen     String
+  type         AllergyType?
+  reaction     String
+  severity     AllergySeverity
   observations String?
-  status ClinicalItemStatus @default(ACTIVE)
+  status       ClinicalItemStatus @default(ACTIVE)
 
-  deactivatedAt DateTime?
-  deactivatedById String? @db.Uuid
-  supersedesId String? @db.Uuid
+  deactivatedAt   DateTime?
+  deactivatedById String?   @db.Uuid
+  supersedesId    String?   @db.Uuid
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  resident Resident @relation(fields: [residentId], references: [id], onDelete: Restrict)
-  createdBy User @relation("AllergyCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
-  deactivatedBy User? @relation("AllergyDeactivatedBy", fields: [deactivatedById], references: [id], onDelete: Restrict)
+  resident      Resident @relation(fields: [residentId], references: [id], onDelete: Restrict)
+  createdBy     User     @relation("AllergyCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  deactivatedBy User?    @relation("AllergyDeactivatedBy", fields: [deactivatedById], references: [id], onDelete: Restrict)
 
-  supersedes ResidentAllergy? @relation("AllergyCorrections", fields: [supersedesId], references: [id], onDelete: Restrict)
+  supersedes  ResidentAllergy?  @relation("AllergyCorrections", fields: [supersedesId], references: [id], onDelete: Restrict)
   corrections ResidentAllergy[] @relation("AllergyCorrections")
 
   @@index([residentId, status])
@@ -398,32 +441,32 @@ model ResidentAllergy {
 model ResidentClinicalRecord {
   id String @id @default(uuid()) @db.Uuid
 
-  residentId String @db.Uuid
-  facilityId String @db.Uuid
+  residentId   String @db.Uuid
+  facilityId   String @db.Uuid
   authorUserId String @db.Uuid
 
-  category ClinicalRecordCategory
-  title String
-  content String
+  category   ClinicalRecordCategory
+  title      String
+  content    String
   clinicalAt DateTime
 
   status ClinicalRecordStatus @default(ACTIVE)
 
-  voidedAt DateTime?
-  voidedById String? @db.Uuid
-  voidReason String?
-  amendsRecordId String? @db.Uuid
+  voidedAt       DateTime?
+  voidedById     String?   @db.Uuid
+  voidReason     String?
+  amendsRecordId String?   @db.Uuid
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  resident Resident @relation(fields: [residentId], references: [id], onDelete: Restrict)
-  facility Facility @relation(fields: [facilityId], references: [id], onDelete: Restrict)
-  authorUser User @relation("ClinicalRecordAuthor", fields: [authorUserId], references: [id], onDelete: Restrict)
-  voidedBy User? @relation("ClinicalRecordVoidedBy", fields: [voidedById], references: [id], onDelete: Restrict)
+  resident   Resident @relation(fields: [residentId], references: [id], onDelete: Restrict)
+  facility   Facility @relation(fields: [facilityId], references: [id], onDelete: Restrict)
+  authorUser User     @relation("ClinicalRecordAuthor", fields: [authorUserId], references: [id], onDelete: Restrict)
+  voidedBy   User?    @relation("ClinicalRecordVoidedBy", fields: [voidedById], references: [id], onDelete: Restrict)
 
-  amendsRecord ResidentClinicalRecord? @relation("ClinicalRecordAmendments", fields: [amendsRecordId], references: [id], onDelete: Restrict)
-  amendments ResidentClinicalRecord[] @relation("ClinicalRecordAmendments")
+  amendsRecord ResidentClinicalRecord?  @relation("ClinicalRecordAmendments", fields: [amendsRecordId], references: [id], onDelete: Restrict)
+  amendments   ResidentClinicalRecord[] @relation("ClinicalRecordAmendments")
 
   @@index([residentId, clinicalAt])
   @@index([facilityId, clinicalAt])
@@ -523,6 +566,151 @@ model ResidentAppointmentRevision {
 }
 
 //////////////////////////////////////////////////////////
+// RESIDENT MEDICATION
+//////////////////////////////////////////////////////////
+
+model ResidentMedication {
+  id String @id @default(uuid()) @db.Uuid
+
+  residentId       String  @db.Uuid
+  facilityId       String  @db.Uuid
+  createdById      String  @db.Uuid
+  lastModifiedById String  @db.Uuid
+  prescriberUserId String? @db.Uuid
+
+  prescriberName      String
+  medicationName      String
+  dosage              String
+  pharmaceuticalForm  String
+  administrationRoute String
+  indication          String?
+  observations        String?
+  startDate           DateTime         @db.Date
+  endDate             DateTime?        @db.Date
+  status              MedicationStatus @default(ACTIVE)
+
+  suspendedAt           DateTime?
+  suspendedById         String?   @db.Uuid
+  suspensionReason      String?
+  discontinuedAt        DateTime?
+  discontinuedById      String?   @db.Uuid
+  discontinuationReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  resident       Resident @relation(fields: [residentId], references: [id], onDelete: Restrict)
+  facility       Facility @relation(fields: [facilityId], references: [id], onDelete: Restrict)
+  createdBy      User     @relation("MedicationCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  lastModifiedBy User     @relation("MedicationLastModifiedBy", fields: [lastModifiedById], references: [id], onDelete: Restrict)
+  prescriberUser User?    @relation("MedicationPrescriber", fields: [prescriberUserId], references: [id], onDelete: Restrict)
+  suspendedBy    User?    @relation("MedicationSuspendedBy", fields: [suspendedById], references: [id], onDelete: Restrict)
+  discontinuedBy User?    @relation("MedicationDiscontinuedBy", fields: [discontinuedById], references: [id], onDelete: Restrict)
+
+  scheduleRules ResidentMedicationScheduleRule[]
+  revisions     ResidentMedicationRevision[]
+
+  @@index([residentId, status, startDate])
+  @@index([residentId, startDate])
+  @@index([facilityId, status])
+  @@index([prescriberUserId])
+  @@index([status, endDate])
+}
+
+//////////////////////////////////////////////////////////
+// RESIDENT MEDICATION SCHEDULE
+//////////////////////////////////////////////////////////
+
+model ResidentMedicationScheduleRule {
+  id String @id @default(uuid()) @db.Uuid
+
+  medicationId         String                 @db.Uuid
+  mode                 MedicationScheduleMode
+  timesPerDay          Int?
+  intervalHours        Int?
+  /// An empty list means that the rule applies every day.
+  weekdays             MedicationWeekday[]    @default([])
+  prnReason            String?
+  maxDosesPerDay       Int?
+  minimumIntervalHours Int?
+  instructions         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  medication  ResidentMedication                     @relation(fields: [medicationId], references: [id], onDelete: Restrict)
+  occurrences ResidentMedicationScheduleOccurrence[]
+
+  @@index([medicationId])
+  @@index([mode])
+}
+
+model ResidentMedicationScheduleOccurrence {
+  id String @id @default(uuid()) @db.Uuid
+
+  scheduleRuleId String                @db.Uuid
+  timeOfDay      DateTime?             @db.Time(0)
+  careMoment     MedicationCareMoment?
+  doseOverride   String?
+  position       Int
+
+  scheduleRule ResidentMedicationScheduleRule @relation(fields: [scheduleRuleId], references: [id], onDelete: Restrict)
+
+  @@unique([scheduleRuleId, position], map: "ResidentMedicationScheduleOccurrence_scheduleRuleId_position_ke")
+  @@index([scheduleRuleId, timeOfDay], map: "ResidentMedicationScheduleOccurrence_scheduleRuleId_timeOfDay_i")
+  @@index([scheduleRuleId, careMoment], map: "ResidentMedicationScheduleOccurrence_scheduleRuleId_careMoment_")
+}
+
+//////////////////////////////////////////////////////////
+// RESIDENT MEDICATION REVISION
+//////////////////////////////////////////////////////////
+
+model ResidentMedicationRevision {
+  id String @id @default(uuid()) @db.Uuid
+
+  medicationId        String                 @db.Uuid
+  changedById         String                 @db.Uuid
+  changedAtFacilityId String                 @db.Uuid
+  changeType          MedicationRevisionType
+  changeReason        String?
+
+  prescriberUserId    String?          @db.Uuid
+  prescriberName      String
+  medicationName      String
+  dosage              String
+  pharmaceuticalForm  String
+  administrationRoute String
+  indication          String?
+  observations        String?
+  startDate           DateTime         @db.Date
+  endDate             DateTime?        @db.Date
+  status              MedicationStatus
+
+  suspendedAt           DateTime?
+  suspendedById         String?   @db.Uuid
+  suspensionReason      String?
+  discontinuedAt        DateTime?
+  discontinuedById      String?   @db.Uuid
+  discontinuationReason String?
+
+  scheduleSnapshot        Json
+  scheduleSnapshotVersion Int      @default(1)
+  changedAt               DateTime @default(now())
+
+  medication        ResidentMedication @relation(fields: [medicationId], references: [id], onDelete: Restrict)
+  changedBy         User               @relation("MedicationRevisionChangedBy", fields: [changedById], references: [id], onDelete: Restrict)
+  changedAtFacility Facility           @relation("MedicationRevisionChangedAtFacility", fields: [changedAtFacilityId], references: [id], onDelete: Restrict)
+  prescriberUser    User?              @relation("MedicationRevisionPrescriber", fields: [prescriberUserId], references: [id], onDelete: Restrict)
+  suspendedBy       User?              @relation("MedicationRevisionSuspendedBy", fields: [suspendedById], references: [id], onDelete: Restrict)
+  discontinuedBy    User?              @relation("MedicationRevisionDiscontinuedBy", fields: [discontinuedById], references: [id], onDelete: Restrict)
+
+  @@index([medicationId, changedAt])
+  @@index([changedById])
+  @@index([changedAtFacilityId])
+  @@index([changeType])
+}
+
+//////////////////////////////////////////////////////////
 // AUTH.JS
 //////////////////////////////////////////////////////////
 
@@ -599,14 +787,14 @@ model User {
 
   role Role @relation(fields: [roleId], references: [id], onDelete: Restrict)
 
-  accounts Account[]
-  sessions Session[]
-  diagnosesCreated ResidentDiagnosis[] @relation("DiagnosisCreatedBy")
-  diagnosesDeactivated ResidentDiagnosis[] @relation("DiagnosisDeactivatedBy")
-  allergiesCreated ResidentAllergy[] @relation("AllergyCreatedBy")
-  allergiesDeactivated ResidentAllergy[] @relation("AllergyDeactivatedBy")
-  clinicalRecordsAuthored ResidentClinicalRecord[] @relation("ClinicalRecordAuthor")
-  clinicalRecordsVoided ResidentClinicalRecord[] @relation("ClinicalRecordVoidedBy")
+  accounts                        Account[]
+  sessions                        Session[]
+  diagnosesCreated                ResidentDiagnosis[]           @relation("DiagnosisCreatedBy")
+  diagnosesDeactivated            ResidentDiagnosis[]           @relation("DiagnosisDeactivatedBy")
+  allergiesCreated                ResidentAllergy[]             @relation("AllergyCreatedBy")
+  allergiesDeactivated            ResidentAllergy[]             @relation("AllergyDeactivatedBy")
+  clinicalRecordsAuthored         ResidentClinicalRecord[]      @relation("ClinicalRecordAuthor")
+  clinicalRecordsVoided           ResidentClinicalRecord[]      @relation("ClinicalRecordVoidedBy")
   appointmentsCreated             ResidentAppointment[]         @relation("AppointmentCreatedBy")
   appointmentsLastModified        ResidentAppointment[]         @relation("AppointmentLastModifiedBy")
   appointmentsResponsible         ResidentAppointment[]         @relation("AppointmentResponsibleUser")
@@ -616,6 +804,15 @@ model User {
   appointmentRevisionsResponsible ResidentAppointmentRevision[] @relation("AppointmentRevisionResponsibleUser")
   appointmentRevisionsCompleted   ResidentAppointmentRevision[] @relation("AppointmentRevisionCompletedBy")
   appointmentRevisionsCancelled   ResidentAppointmentRevision[] @relation("AppointmentRevisionCancelledBy")
+  medicationsCreated              ResidentMedication[]          @relation("MedicationCreatedBy")
+  medicationsLastModified         ResidentMedication[]          @relation("MedicationLastModifiedBy")
+  medicationsPrescribed           ResidentMedication[]          @relation("MedicationPrescriber")
+  medicationsSuspended            ResidentMedication[]          @relation("MedicationSuspendedBy")
+  medicationsDiscontinued         ResidentMedication[]          @relation("MedicationDiscontinuedBy")
+  medicationRevisionsChanged      ResidentMedicationRevision[]  @relation("MedicationRevisionChangedBy")
+  medicationRevisionsPrescribed   ResidentMedicationRevision[]  @relation("MedicationRevisionPrescriber")
+  medicationRevisionsSuspended    ResidentMedicationRevision[]  @relation("MedicationRevisionSuspendedBy")
+  medicationRevisionsDiscontinued ResidentMedicationRevision[]  @relation("MedicationRevisionDiscontinuedBy")
 
   @@index([clientId])
   @@index([facilityId])
