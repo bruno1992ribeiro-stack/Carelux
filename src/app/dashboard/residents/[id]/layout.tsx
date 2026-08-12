@@ -27,6 +27,7 @@ export default async function ResidentLayout({
         resident={resident}
       />
       <ResidentWorkspaceNavigation
+        canViewAppointments={authorization.canViewAppointments}
         canViewClinical={authorization.canViewClinical}
         residentId={resident.id}
       />

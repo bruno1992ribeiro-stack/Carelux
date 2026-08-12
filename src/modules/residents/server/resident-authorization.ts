@@ -37,6 +37,7 @@ export const getResidentListAuthorization = cache(async () => {
   return {
     canCreate: hasPermission(user, Permission.CREATE_RESIDENT),
     canEdit: hasPermission(user, Permission.EDIT_RESIDENT),
+    canViewAppointments: hasPermission(user, Permission.VIEW_APPOINTMENT),
     canViewClinical: hasPermission(user, Permission.VIEW_CLINICAL_RECORD),
     scope: getFacilityReadScopeForUser(user),
   };

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  CalendarDays,
   ClipboardList,
   HeartPulse,
   LayoutDashboard,
@@ -13,6 +14,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 type ResidentWorkspaceNavigationProps = {
+  canViewAppointments: boolean;
   canViewClinical: boolean;
   residentId: string;
 };
@@ -25,6 +27,7 @@ type ResidentSection = {
 };
 
 export function ResidentWorkspaceNavigation({
+  canViewAppointments,
   canViewClinical,
   residentId,
 }: ResidentWorkspaceNavigationProps) {
@@ -48,6 +51,15 @@ export function ResidentWorkspaceNavigation({
             href: `${basePath}/health`,
             icon: HeartPulse,
             label: "Saúde",
+          },
+        ]
+      : []),
+    ...(canViewAppointments
+      ? [
+          {
+            href: `${basePath}/appointments`,
+            icon: CalendarDays,
+            label: "Consultas",
           },
         ]
       : []),
