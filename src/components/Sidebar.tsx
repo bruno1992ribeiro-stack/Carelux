@@ -12,6 +12,7 @@ import {
   HeartPulse,
   House,
   ListChecks,
+  LogOut,
   MoreHorizontal,
   Pill,
   Settings,
@@ -23,6 +24,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
+import { signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useRef, useState } from "react";
 
@@ -229,9 +231,11 @@ function DesktopLink({ item, pathname }: DesktopLinkProps) {
 }
 
 type MorePanelProps = {
+  isSigningOut: boolean;
   open: boolean;
   pathname: string;
   onClose: () => void;
+  onSignOut: () => Promise<void>;
   closeButtonRef: RefObject<HTMLButtonElement | null>;
 };
 
@@ -245,9 +249,11 @@ const focusableSelector = [
 ].join(",");
 
 function MorePanel({
+  isSigningOut,
   open,
   pathname,
   onClose,
+  onSignOut,
   closeButtonRef,
 }: MorePanelProps) {
   if (!open) {
@@ -346,6 +352,17 @@ function MorePanel({
             );
           })}
         </nav>
+        <div className="mt-4 border-t border-border pt-4">
+          <button
+            type="button"
+            onClick={onSignOut}
+            disabled={isSigningOut}
+            className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-destructive/5 hover:text-destructive focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:opacity-60"
+          >
+            <LogOut aria-hidden="true" size={21} strokeWidth={1.8} />
+            <span>{isSigningOut ? "A terminar sessão..." : "Terminar sessão"}</span>
+          </button>
+        </div>
       </section>
     </div>
   );
@@ -353,6 +370,7 @@ function MorePanel({
 
 export function Sidebar({ currentRole = "Administrador" }: SidebarProps) {
   const pathname = usePathname();
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const moreButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -371,6 +389,21 @@ export function Sidebar({ currentRole = "Administrador" }: SidebarProps) {
   function closeMorePanel() {
     setMoreOpen(false);
     requestAnimationFrame(() => moreButtonRef.current?.focus());
+  }
+
+  async function handleSignOut() {
+    if (isSigningOut) {
+      return;
+    }
+
+    setIsSigningOut(true);
+
+    try {
+      await signOut({ redirect: false });
+      window.location.assign("/login");
+    } finally {
+      setIsSigningOut(false);
+    }
   }
 
   return (
@@ -428,6 +461,17 @@ export function Sidebar({ currentRole = "Administrador" }: SidebarProps) {
         </nav>
 
         <div className="mt-5 border-t border-border pt-4">
+          <button
+            type="button"
+            onClick={handleSignOut}
+            disabled={isSigningOut}
+            className="mb-4 flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-destructive/5 hover:text-destructive focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:opacity-60"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-background">
+              <LogOut aria-hidden="true" size={20} strokeWidth={1.8} />
+            </span>
+            <span>{isSigningOut ? "A terminar sessão..." : "Terminar sessão"}</span>
+          </button>
           <p className="text-xs leading-4 text-muted-foreground">
             Gestão integrada de cuidados
           </p>
@@ -486,9 +530,11 @@ export function Sidebar({ currentRole = "Administrador" }: SidebarProps) {
       </nav>
 
       <MorePanel
+        isSigningOut={isSigningOut}
         open={moreOpen}
         pathname={pathname}
         onClose={closeMorePanel}
+        onSignOut={handleSignOut}
         closeButtonRef={closeButtonRef}
       />
     </>
