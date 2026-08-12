@@ -26,7 +26,10 @@ export default async function ResidentLayout({
         canEdit={authorization.canEdit}
         resident={resident}
       />
-      <ResidentWorkspaceNavigation residentId={resident.id} />
+      <ResidentWorkspaceNavigation
+        canViewClinical={authorization.canViewClinical}
+        residentId={resident.id}
+      />
       {children}
     </div>
   );

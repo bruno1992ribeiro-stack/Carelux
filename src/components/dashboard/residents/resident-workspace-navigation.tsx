@@ -13,6 +13,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 type ResidentWorkspaceNavigationProps = {
+  canViewClinical: boolean;
   residentId: string;
 };
 
@@ -24,6 +25,7 @@ type ResidentSection = {
 };
 
 export function ResidentWorkspaceNavigation({
+  canViewClinical,
   residentId,
 }: ResidentWorkspaceNavigationProps) {
   const pathname = usePathname();
@@ -40,11 +42,15 @@ export function ResidentWorkspaceNavigation({
       icon: ClipboardList,
       label: "Registos",
     },
-    {
-      href: `${basePath}/health`,
-      icon: HeartPulse,
-      label: "Saúde",
-    },
+    ...(canViewClinical
+      ? [
+          {
+            href: `${basePath}/health`,
+            icon: HeartPulse,
+            label: "Saúde",
+          },
+        ]
+      : []),
     {
       href: `${basePath}/medication`,
       icon: Pill,

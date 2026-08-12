@@ -1,13 +1,8 @@
-import { HeartPulse } from "lucide-react";
+import { ResidentHealth } from "@/modules/resident-clinical/components/resident-health";
+import { getResidentHealth } from "@/modules/resident-clinical/server/get-resident-health";
 
-import { ResidentSectionEmptyState } from "@/components/dashboard/residents/resident-section-empty-state";
-
-export default function ResidentHealthPage() {
-  return (
-    <ResidentSectionEmptyState
-      icon={HeartPulse}
-      title="Ainda não existe informação de saúde"
-      description="O modelo atual do CareLux não contém sinais vitais ou registos clínicos associados ao utente. Esta área permanece apenas de leitura até existir um fluxo clínico autorizado."
-    />
-  );
+export default async function ResidentHealthPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const health = await getResidentHealth(id);
+  return <ResidentHealth residentId={id} {...health} />;
 }
