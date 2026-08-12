@@ -79,6 +79,21 @@ enum ClinicalRecordStatus {
   VOIDED
 }
 
+enum AppointmentStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum AppointmentRevisionType {
+  EDITED
+  RESCHEDULED
+  COMPLETED
+  CANCELLED
+  REOPENED
+  STATUS_CORRECTED
+}
+
 //////////////////////////////////////////////////////////
 // CLIENT
 //////////////////////////////////////////////////////////
@@ -134,6 +149,7 @@ model Facility {
   rooms         Room[]
   residents     Resident[]
   clinicalRecords ResidentClinicalRecord[]
+  appointments    ResidentAppointment[]
 
   @@index([clientId])
 }
@@ -228,6 +244,7 @@ model Resident {
   diagnoses     ResidentDiagnosis[]
   allergies     ResidentAllergy[]
   clinicalRecords ResidentClinicalRecord[]
+  appointments    ResidentAppointment[]
 
   @@index([facilityId])
   @@index([roomId])
@@ -416,6 +433,96 @@ model ResidentClinicalRecord {
 }
 
 //////////////////////////////////////////////////////////
+// RESIDENT APPOINTMENT
+//////////////////////////////////////////////////////////
+
+model ResidentAppointment {
+  id String @id @default(uuid()) @db.Uuid
+
+  residentId        String  @db.Uuid
+  facilityId        String  @db.Uuid
+  createdById       String  @db.Uuid
+  lastModifiedById  String  @db.Uuid
+  responsibleUserId String? @db.Uuid
+
+  professionalName String
+  scheduledAt      DateTime
+  type             String
+  specialty        String?
+  location         String?
+  reason           String?
+  observations     String?
+  status           AppointmentStatus @default(SCHEDULED)
+
+  completedAt        DateTime?
+  completedById      String?   @db.Uuid
+  cancelledAt        DateTime?
+  cancelledById      String?   @db.Uuid
+  cancellationReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  resident        Resident @relation(fields: [residentId], references: [id], onDelete: Restrict)
+  facility        Facility @relation(fields: [facilityId], references: [id], onDelete: Restrict)
+  createdBy       User     @relation("AppointmentCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  lastModifiedBy  User     @relation("AppointmentLastModifiedBy", fields: [lastModifiedById], references: [id], onDelete: Restrict)
+  responsibleUser User?    @relation("AppointmentResponsibleUser", fields: [responsibleUserId], references: [id], onDelete: Restrict)
+  completedBy     User?    @relation("AppointmentCompletedBy", fields: [completedById], references: [id], onDelete: Restrict)
+  cancelledBy     User?    @relation("AppointmentCancelledBy", fields: [cancelledById], references: [id], onDelete: Restrict)
+
+  revisions ResidentAppointmentRevision[]
+
+  @@index([residentId, status, scheduledAt])
+  @@index([residentId, scheduledAt])
+  @@index([facilityId, scheduledAt])
+  @@index([responsibleUserId, scheduledAt])
+  @@index([status, scheduledAt])
+}
+
+//////////////////////////////////////////////////////////
+// RESIDENT APPOINTMENT REVISION
+//////////////////////////////////////////////////////////
+
+model ResidentAppointmentRevision {
+  id String @id @default(uuid()) @db.Uuid
+
+  appointmentId String                  @db.Uuid
+  changedById   String                  @db.Uuid
+  changeType    AppointmentRevisionType
+  changeReason  String?
+
+  scheduledAt       DateTime
+  status            AppointmentStatus
+  type              String
+  specialty         String?
+  professionalName  String
+  responsibleUserId String?           @db.Uuid
+  location          String?
+  reason            String?
+  observations      String?
+
+  completedAt        DateTime?
+  completedById      String?   @db.Uuid
+  cancelledAt        DateTime?
+  cancelledById      String?   @db.Uuid
+  cancellationReason String?
+
+  changedAt DateTime @default(now())
+
+  appointment     ResidentAppointment @relation(fields: [appointmentId], references: [id], onDelete: Restrict)
+  changedBy       User                @relation("AppointmentRevisionChangedBy", fields: [changedById], references: [id], onDelete: Restrict)
+  responsibleUser User?               @relation("AppointmentRevisionResponsibleUser", fields: [responsibleUserId], references: [id], onDelete: Restrict)
+  completedBy     User?               @relation("AppointmentRevisionCompletedBy", fields: [completedById], references: [id], onDelete: Restrict)
+  cancelledBy     User?               @relation("AppointmentRevisionCancelledBy", fields: [cancelledById], references: [id], onDelete: Restrict)
+
+  @@index([appointmentId, changedAt])
+  @@index([changedById])
+  @@index([responsibleUserId])
+  @@index([changeType])
+}
+
+//////////////////////////////////////////////////////////
 // AUTH.JS
 //////////////////////////////////////////////////////////
 
@@ -500,6 +607,15 @@ model User {
   allergiesDeactivated ResidentAllergy[] @relation("AllergyDeactivatedBy")
   clinicalRecordsAuthored ResidentClinicalRecord[] @relation("ClinicalRecordAuthor")
   clinicalRecordsVoided ResidentClinicalRecord[] @relation("ClinicalRecordVoidedBy")
+  appointmentsCreated             ResidentAppointment[]         @relation("AppointmentCreatedBy")
+  appointmentsLastModified        ResidentAppointment[]         @relation("AppointmentLastModifiedBy")
+  appointmentsResponsible         ResidentAppointment[]         @relation("AppointmentResponsibleUser")
+  appointmentsCompleted           ResidentAppointment[]         @relation("AppointmentCompletedBy")
+  appointmentsCancelled           ResidentAppointment[]         @relation("AppointmentCancelledBy")
+  appointmentRevisionsChanged     ResidentAppointmentRevision[] @relation("AppointmentRevisionChangedBy")
+  appointmentRevisionsResponsible ResidentAppointmentRevision[] @relation("AppointmentRevisionResponsibleUser")
+  appointmentRevisionsCompleted   ResidentAppointmentRevision[] @relation("AppointmentRevisionCompletedBy")
+  appointmentRevisionsCancelled   ResidentAppointmentRevision[] @relation("AppointmentRevisionCancelledBy")
 
   @@index([clientId])
   @@index([facilityId])
