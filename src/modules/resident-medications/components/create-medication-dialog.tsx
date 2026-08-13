@@ -76,7 +76,7 @@ const careMomentLabels: Record<MedicationCareMoment, string> = {
 
 type MedicationFormValues = z.input<typeof medicationCreateSchema>;
 
-const defaultSchedule = (
+export const defaultMedicationSchedule = (
   mode: MedicationScheduleMode,
 ): MedicationScheduleInput => {
   switch (mode) {
@@ -125,7 +125,7 @@ function scheduleForMode(
   previousSchedule: MedicationScheduleInput,
 ): MedicationScheduleInput {
   return {
-    ...defaultSchedule(mode),
+    ...defaultMedicationSchedule(mode),
     weekdays: [...previousSchedule.weekdays],
     instructions: previousSchedule.instructions,
   };
@@ -142,7 +142,9 @@ const defaultValues: MedicationFormValues = {
   observations: null,
   startDate: "",
   endDate: null,
-  schedule: defaultSchedule(MedicationScheduleMode.DAILY_FREQUENCY),
+  schedule: defaultMedicationSchedule(
+    MedicationScheduleMode.DAILY_FREQUENCY,
+  ),
 };
 
 function RootError({ message }: { message?: string }) {
@@ -426,7 +428,7 @@ function CareMomentsFields({
   );
 }
 
-function ScheduleFields({
+export function MedicationScheduleFields({
   disabled,
   error,
   onChange,
@@ -854,7 +856,7 @@ export function CreateMedicationDialog({ residentId }: { residentId: string }) {
             name="schedule"
             control={control}
             render={({ field }) => (
-              <ScheduleFields
+              <MedicationScheduleFields
                 value={field.value as MedicationScheduleInput}
                 onChange={field.onChange}
                 disabled={isSubmitting}

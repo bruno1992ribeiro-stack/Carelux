@@ -24,7 +24,9 @@ import { ResidentSectionEmptyState } from "@/components/dashboard/residents/resi
 import { cn } from "@/lib/utils";
 import type { getResidentMedications } from "@/modules/resident-medications/server/get-resident-medications";
 
+import { ChangeMedicationScheduleDialog } from "./change-medication-schedule-dialog";
 import { CreateMedicationDialog } from "./create-medication-dialog";
+import { EditMedicationDialog } from "./edit-medication-dialog";
 
 type MedicationData = Awaited<ReturnType<typeof getResidentMedications>>;
 type Medication = MedicationData["medications"][number];
@@ -36,12 +38,14 @@ type ResidentMedicationsProps = {
 };
 
 type MedicationGroupProps = {
+  canEdit: boolean;
   description: string;
   emptyMessage: string;
   eyebrow: string;
   icon: typeof Pill;
   id: string;
   medications: Medication[];
+  residentId: string;
   title: string;
 };
 
@@ -209,7 +213,18 @@ function StatusMark({ status }: { status: MedicationStatus }) {
   );
 }
 
-function MedicationCard({ medication }: { medication: Medication }) {
+function MedicationCard({
+  canEdit,
+  medication,
+  residentId,
+}: {
+  canEdit: boolean;
+  medication: Medication;
+  residentId: string;
+}) {
+  const canChange =
+    canEdit && medication.status !== MedicationStatus.DISCONTINUED;
+
   return (
     <li>
       <article className="flex h-full flex-col gap-4 rounded-2xl border border-border bg-background/70 p-4 shadow-sm sm:p-5">
@@ -292,18 +307,33 @@ function MedicationCard({ medication }: { medication: Medication }) {
             )}
           </div>
         )}
+        {canChange && (
+          <div className="mt-auto flex flex-wrap gap-2 border-t border-border/70 pt-4">
+            <EditMedicationDialog
+              key={`${medication.id}-${medication.updatedAt.toISOString()}`}
+              medication={medication}
+              residentId={residentId}
+            />
+            <ChangeMedicationScheduleDialog
+              medication={medication}
+              residentId={residentId}
+            />
+          </div>
+        )}
       </article>
     </li>
   );
 }
 
 function MedicationGroup({
+  canEdit,
   description,
   emptyMessage,
   eyebrow,
   icon: Icon,
   id,
   medications,
+  residentId,
   title,
 }: MedicationGroupProps) {
   return (
@@ -329,7 +359,12 @@ function MedicationGroup({
           {medications.length ? (
             <ul className="grid gap-4 xl:grid-cols-2">
               {medications.map((medication) => (
-                <MedicationCard key={medication.id} medication={medication} />
+                <MedicationCard
+                  key={medication.id}
+                  medication={medication}
+                  canEdit={canEdit}
+                  residentId={residentId}
+                />
               ))}
             </ul>
           ) : (
@@ -391,6 +426,8 @@ export function ResidentMedications({
             emptyMessage="Não existe medicação ativa."
             icon={Pill}
             medications={active}
+            canEdit={canEdit}
+            residentId={residentId}
           />
           {suspended.length > 0 && (
             <MedicationGroup
@@ -401,6 +438,8 @@ export function ResidentMedications({
               emptyMessage="Não existe medicação suspensa."
               icon={PauseCircle}
               medications={suspended}
+              canEdit={canEdit}
+              residentId={residentId}
             />
           )}
           {discontinued.length > 0 && (
@@ -412,6 +451,8 @@ export function ResidentMedications({
               emptyMessage="Ainda não existe medicação no histórico."
               icon={Archive}
               medications={discontinued}
+              canEdit={canEdit}
+              residentId={residentId}
             />
           )}
         </>
