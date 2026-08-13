@@ -11,5 +11,11 @@ export default async function ResidentMedicationPage({
   const { id } = await params;
   const data = await getResidentMedications(id);
 
-  return <ResidentMedications medications={data.medications} />;
+  return (
+    <ResidentMedications
+      residentId={data.residentId}
+      medications={data.medications}
+      canEdit={data.authorization.canEdit}
+    />
+  );
 }

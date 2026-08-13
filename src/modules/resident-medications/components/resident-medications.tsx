@@ -24,11 +24,15 @@ import { ResidentSectionEmptyState } from "@/components/dashboard/residents/resi
 import { cn } from "@/lib/utils";
 import type { getResidentMedications } from "@/modules/resident-medications/server/get-resident-medications";
 
+import { CreateMedicationDialog } from "./create-medication-dialog";
+
 type MedicationData = Awaited<ReturnType<typeof getResidentMedications>>;
 type Medication = MedicationData["medications"][number];
 
 type ResidentMedicationsProps = {
+  residentId: string;
   medications: MedicationData["medications"];
+  canEdit: boolean;
 };
 
 type MedicationGroupProps = {
@@ -340,18 +344,10 @@ function MedicationGroup({
 }
 
 export function ResidentMedications({
+  canEdit,
   medications,
+  residentId,
 }: ResidentMedicationsProps) {
-  if (!medications.length) {
-    return (
-      <ResidentSectionEmptyState
-        icon={Pill}
-        title="Ainda não existe medicação associada"
-        description="As prescrições do utente e os respetivos esquemas posológicos serão apresentados aqui."
-      />
-    );
-  }
-
   const active = medications.filter(
     (medication) => medication.status === MedicationStatus.ACTIVE,
   );
@@ -364,36 +360,61 @@ export function ResidentMedications({
 
   return (
     <div className="flex flex-col gap-5">
-      <MedicationGroup
-        id="active-medications-title"
-        eyebrow="Plano atual"
-        title="Medicação ativa"
-        description="Prescrições atualmente em vigor para o utente."
-        emptyMessage="Não existe medicação ativa."
-        icon={Pill}
-        medications={active}
-      />
-      {suspended.length > 0 && (
-        <MedicationGroup
-          id="suspended-medications-title"
-          eyebrow="Em pausa"
-          title="Medicação suspensa"
-          description="Prescrições temporariamente suspensas."
-          emptyMessage="Não existe medicação suspensa."
-          icon={PauseCircle}
-          medications={suspended}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+            Plano terapêutico
+          </p>
+          <h2 className="mt-1 font-display text-xl text-foreground">
+            Medicação do utente
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Prescrições e esquemas posológicos associados ao utente.
+          </p>
+        </div>
+        {canEdit && <CreateMedicationDialog residentId={residentId} />}
+      </div>
+
+      {!medications.length ? (
+        <ResidentSectionEmptyState
+          icon={Pill}
+          title="Ainda não existe medicação associada"
+          description="As prescrições do utente e os respetivos esquemas posológicos serão apresentados aqui."
         />
-      )}
-      {discontinued.length > 0 && (
-        <MedicationGroup
-          id="medication-history-title"
-          eyebrow="Percurso terapêutico"
-          title="Histórico"
-          description="Medicação descontinuada, preservada para consulta."
-          emptyMessage="Ainda não existe medicação no histórico."
-          icon={Archive}
-          medications={discontinued}
-        />
+      ) : (
+        <>
+          <MedicationGroup
+            id="active-medications-title"
+            eyebrow="Plano atual"
+            title="Medicação ativa"
+            description="Prescrições atualmente em vigor para o utente."
+            emptyMessage="Não existe medicação ativa."
+            icon={Pill}
+            medications={active}
+          />
+          {suspended.length > 0 && (
+            <MedicationGroup
+              id="suspended-medications-title"
+              eyebrow="Em pausa"
+              title="Medicação suspensa"
+              description="Prescrições temporariamente suspensas."
+              emptyMessage="Não existe medicação suspensa."
+              icon={PauseCircle}
+              medications={suspended}
+            />
+          )}
+          {discontinued.length > 0 && (
+            <MedicationGroup
+              id="medication-history-title"
+              eyebrow="Percurso terapêutico"
+              title="Histórico"
+              description="Medicação descontinuada, preservada para consulta."
+              emptyMessage="Ainda não existe medicação no histórico."
+              icon={Archive}
+              medications={discontinued}
+            />
+          )}
+        </>
       )}
     </div>
   );
