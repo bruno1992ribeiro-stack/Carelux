@@ -27,6 +27,7 @@ import type { getResidentMedications } from "@/modules/resident-medications/serv
 import { ChangeMedicationScheduleDialog } from "./change-medication-schedule-dialog";
 import { CreateMedicationDialog } from "./create-medication-dialog";
 import { EditMedicationDialog } from "./edit-medication-dialog";
+import { MedicationHistoryDialog } from "./medication-history-dialog";
 import { MedicationStatusActions } from "./medication-status-action-dialog";
 
 type MedicationData = Awaited<ReturnType<typeof getResidentMedications>>;
@@ -308,8 +309,14 @@ function MedicationCard({
             )}
           </div>
         )}
-        {canChange && (
-          <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-border/70 pt-4">
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-border/70 pt-4">
+          <MedicationHistoryDialog
+            key={`${medication.id}-history-${medication.updatedAt.toISOString()}`}
+            medicationId={medication.id}
+            medicationName={medication.medicationName}
+            residentId={residentId}
+          />
+          {canChange && (
             <div className="flex flex-wrap gap-2">
               <EditMedicationDialog
                 key={`${medication.id}-${medication.updatedAt.toISOString()}`}
@@ -320,16 +327,14 @@ function MedicationCard({
                 medication={medication}
                 residentId={residentId}
               />
-            </div>
-            <div className="flex flex-wrap gap-2">
               <MedicationStatusActions
                 medicationId={medication.id}
                 residentId={residentId}
                 status={medication.status}
               />
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </article>
     </li>
   );
