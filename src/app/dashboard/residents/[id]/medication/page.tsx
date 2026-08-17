@@ -1,13 +1,21 @@
-import { Pill } from "lucide-react";
+import { ResidentMedications } from "@/modules/resident-medications/components/resident-medications";
+import { getResidentMedications } from "@/modules/resident-medications/server/get-resident-medications";
 
-import { ResidentSectionEmptyState } from "@/components/dashboard/residents/resident-section-empty-state";
+type ResidentMedicationPageProps = {
+  params: Promise<{ id: string }>;
+};
 
-export default function ResidentMedicationPage() {
+export default async function ResidentMedicationPage({
+  params,
+}: ResidentMedicationPageProps) {
+  const { id } = await params;
+  const data = await getResidentMedications(id);
+
   return (
-    <ResidentSectionEmptyState
-      icon={Pill}
-      title="Ainda não existe medicação associada"
-      description="O CareLux ainda não dispõe de prescrições ou administrações de medicação associadas ao utente. Não são apresentadas ações sem validação e autorização reais."
+    <ResidentMedications
+      residentId={data.residentId}
+      medications={data.medications}
+      canEdit={data.authorization.canEdit}
     />
   );
 }
