@@ -23,7 +23,7 @@ export const residentClinicalRepository = {
     const [diagnoses, allergies, clinicalRecords] = await Promise.all([
       db.residentDiagnosis.findMany({ where: { residentId }, include: { createdBy: { select: userDisplaySelect }, deactivatedBy: { select: userDisplaySelect } }, orderBy: [{ status: "asc" }, { diagnosedAt: "desc" }, { createdAt: "desc" }] }),
       db.residentAllergy.findMany({ where: { residentId }, include: { createdBy: { select: userDisplaySelect }, deactivatedBy: { select: userDisplaySelect } }, orderBy: [{ status: "asc" }, { severity: "desc" }, { createdAt: "desc" }] }),
-      db.residentClinicalRecord.findMany({ where: { residentId }, include: { authorUser: { select: userDisplaySelect }, voidedBy: { select: userDisplaySelect }, facility: { select: { id: true, name: true } } }, orderBy: [{ clinicalAt: "desc" }, { createdAt: "desc" }] }),
+      db.residentClinicalRecord.findMany({ where: { residentId }, include: { authorUser: { select: userDisplaySelect }, voidedBy: { select: userDisplaySelect }, facility: { select: { id: true, name: true } }, amendsRecord: { select: { title: true, clinicalAt: true, status: true } } }, orderBy: [{ clinicalAt: "desc" }, { createdAt: "desc" }] }),
     ]);
     return { diagnoses, allergies, clinicalRecords };
   },
