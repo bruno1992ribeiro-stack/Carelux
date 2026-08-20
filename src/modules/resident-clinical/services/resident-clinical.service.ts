@@ -113,6 +113,15 @@ export const residentClinicalService = {
       const resident = await requireResident(residentId, scope, tx);
       const original = await residentClinicalRepository.findClinicalRecord(data.amendsRecordId, resident.id, tx);
       if (!original) throw new AppError("CLINICAL_RECORD_NOT_FOUND", "Registo clínico não encontrado.", 404);
+
+      if (original.status !== "ACTIVE") {
+        throw new AppError(
+          "CLINICAL_RECORD_NOT_ACTIVE",
+          "Não é possível corrigir um registo clínico anulado.",
+          409,
+        );
+      }
+
       const { amendsRecordId, ...clinicalData } = data;
       return residentClinicalRepository.createClinicalRecord({ ...clinicalData, residentId: resident.id, facilityId: resident.facilityId, authorUserId: userId, amendsRecordId }, tx);
     });
